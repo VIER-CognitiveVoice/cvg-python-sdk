@@ -1,0 +1,241 @@
+openapi: 3.0.0
+servers:
+  - description: Production
+    url: https://cognitivevoice.io/v1
+  - description: Staging
+    url: https://stage.cognitivevoice.io/v1
+  - description: Local Server
+    url: https://localhost/v1
+info:
+  description: |-
+    With the Recording API, client applications can manage recordings that have previously been created using the
+    Call or Assist APIs.
+  version: '{{VERSION}}'
+  title: VIER Cognitive Voice Recording API
+  contact:
+    email: support@vier.ai
+
+paths:
+  /recording/{resellerToken}/{dialogId}:
+    parameters:
+      - name: resellerToken
+        in: path
+        required: true
+        schema:
+          $ref: 'shared/tokens.yml#/components/schemas/ResellerToken'
+      - name: dialogId
+        in: path
+        required: true
+        schema:
+          $ref: 'shared/tokens.yml#/components/schemas/DialogId'
+      - name: phase
+        in: query
+        required: false
+        description: Omitting the phase will select the bot dialog
+        schema:
+          $ref: 'shared/recording.yml#/components/schemas/DialogPhase'
+      - name: id
+        in: query
+        required: false
+        description: Omitting the recording ID will select the default recording of the selected phase.
+        schema:
+          $ref: 'shared/recording.yml#/components/schemas/RecordingId'
+    get:
+      tags:
+        - recording
+      summary: Get download URLs for recording
+      operationId: getRecordingArtifacts
+      description: |-
+        Retrieves recording artifacts for the dialog. Recordings are generally not immediately available after a dialog
+        ends. The bot will receive a notification (see Bot API for endpoint details) once the recording has been
+        processed and is available using this API.
+
+        Once the recordings are downloaded you can use the `DELETE` verb on
+        this endpoint to remove the recording, otherwise the recording will be stored until the retention period
+        configured on the project expires.
+      responses:
+        '200':
+          description: The recording artifacts for the given dialog have been found and download URLs for them returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecordingObjectsResponse'
+        '404':
+          description: |-
+            No recording for the given reseller and dialog has been found. Either the dialog was not recorded, the
+            recording has already been deleted or the recording is still being processed. The bot will be notified once
+            the processing is complete.
+    delete:
+      tags:
+        - recording
+      summary: Delete recording
+      operationId: deleteRecording
+      description: Deletes recording artifacts for the dialog.
+      responses:
+        '204':
+          description: The recording artifacts for the given dialog have been found and deleted.
+        '404':
+          description: No recording for the given reseller and dialog has been found.
+components:
+  schemas:
+    RecordingObjectsResponse:
+      type: object
+      description: |-
+        This object contains URLs to the various artifacts that can be retrieved for a given recording.
+
+        All URLs in this object are **not stable** and **not permanent**. Download the files in a timely fashion. If
+        you need to download the files multiple times, always request this object first for the appropriate download
+        URLs.
+      required:
+        - phase
+        - recordingId
+        - duration
+        - lossless
+        - lossy
+        - transcript
+      properties:
+        phase:
+          $ref: 'shared/recording.yml#/components/schemas/DialogPhase'
+        recordingId:
+          $ref: 'shared/recording.yml#/components/schemas/RecordingId'
+        lossless:
+          type: string
+          format: uri
+          description: |-
+            This property contains the download URL of the lossless version of the recording.
+            The lossless version is encoded as [FLAC](https://xiph.org/flac/). The customer's voice will be on the first
+            (stereo-left) audio channel, the agent's voice will be on the second (stereo-right) audio channel. The file
+            contains [ID3](https://id3.org) metadata, including a
+            [simple LRC](https://en.wikipedia.org/wiki/LRC_(file_format)#Simple_format)-formatted transcript in the
+            `SYLT` (synchronized lyrics) tag.
+        lossy:
+          type: string
+          format: uri
+          description: |-
+            This property contains the download URL of the lossy version of the recording.
+            The lossy version is encoded as [MP3](https://www.iis.fraunhofer.de/en/ff/amm/consumer-electronics/mp3.html)
+            using the [LAME](https://lame.sourceforge.io/) encoder with `-V 6` (variable bitrate, 115kbps average). The
+            customer's voice will be on the first (stereo-left) audio channel, the agent's voice will be on the second (stereo-right)
+            audio channel. The file contains [ID3](https://id3.org) metadata, including a
+            [simple LRC](https://en.wikipedia.org/wiki/LRC_(file_format)#Simple_format)-formatted transcript in the
+            `SYLT` (synchronized lyrics) tag.
+        transcript:
+          type: string
+          format: uri
+          description: |-
+            This property contains the download URL of the recording transcript.
+
+            **NOTE**: The format of the recording transcripts is not yet finalized.
+    Transcript:
+      type: object
+      description: |-
+        This object represents a recording transcript. The transcript object is versioned to allow us to improve the
+        format in the future.
+
+        Transcripts are a condensed representation of the dialog as it would have been observed by a third person
+        listening in and they are restricted to the sections of the dialog that have been recorded.
+
+        If you want to process the data programmatically, the Dialog API is most likely more suitable.
+        The data it returns covers the entire dialog and is more structured to retain relevant information about
+        advanced features like prompts.
+      properties:
+        version:
+          type: string
+          enum:
+            - '1'
+      discriminator:
+        propertyName: version
+        mapping:
+          '1': '#/components/schemas/TranscriptV1'
+    TranscriptV1:
+      allOf:
+        - $ref: '#/components/schemas/Transcript'
+        - type: object
+          description: |-
+            The version one transcript format only contains a list of transcript entries, check their documentation.
+          required:
+            - dialogId
+            - entries
+          properties:
+            dialogId:
+              $ref: 'shared/tokens.yml#/components/schemas/DialogId'
+            entries:
+              type: array
+              items:
+                $ref: '#/components/schemas/TranscriptEntry'
+    TranscriptEntry:
+      type: object
+      description: |-
+        A transcript entry describes what either participant (here `speaker`) has said with minimal to no interpretation
+        by the platform.
+      required:
+        - type
+        - timestamp
+        - speaker
+      properties:
+        type:
+          type: string
+          enum:
+            - Voice
+            - Dtmf
+            - Text
+            - Audio
+        timestamp:
+          type: integer
+          format: int64
+          description: The timestamp is the amount of milliseconds since the beginning of the recording.
+        speaker:
+          $ref: 'shared/speaker.yml#/components/schemas/Speaker'
+      discriminator:
+        propertyName: type
+    Voice:
+      allOf:
+        - $ref: '#/components/schemas/TranscriptEntry'
+        - type: object
+          required:
+            - text
+            - confidence
+          properties:
+            text:
+              type: string
+              description: The text as it has been detected by speech recognition.
+            confidence:
+              $ref: 'shared/confidence.yml#/components/schemas/Confidence'
+    Dtmf:
+      allOf:
+        - $ref: '#/components/schemas/TranscriptEntry'
+        - type: object
+          required:
+            - tone
+          properties:
+            tone:
+              type: string
+              minLength: 1
+              maxLength: 1
+              description: DTMF tones will be seen as their text representation.
+    Text:
+      allOf:
+        - $ref: '#/components/schemas/TranscriptEntry'
+        - type: object
+          required:
+            - text
+            - plainText
+          properties:
+            text:
+              type: string
+              description: The text as supplied by a bot.
+            plainText:
+              type: string
+              description: The text supplied by the bot, but with any markup like SSML removed.
+    Audio:
+      allOf:
+        - $ref: '#/components/schemas/TranscriptEntry'
+        - type: object
+          required:
+            - url
+          properties:
+            url:
+              type: string
+              format: uri
+              description: The audio URL as supplied by a bot.
+

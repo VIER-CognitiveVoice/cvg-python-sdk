@@ -1,0 +1,155 @@
+openapi: 3.0.0
+servers:
+  - description: Production
+    url: https://cognitivevoice.io/v1
+  - description: Staging
+    url: https://stage.cognitivevoice.io/v1
+  - description: Local Server
+    url: https://localhost/v1
+info:
+  description: |-
+    The Provisioning API provides contact centers with a way to announce a call to CVG before the call is actually
+    transferred to CVG. With this announcement of the call, there are two major advantages over direct call resp.
+    direct call transfer:
+
+    1. The CVG project (bot configuration, voice provider selection, audio configuration, ...) can be dynamically
+       configured for the announced call via the Provisioning API.
+
+    2. Between the announcement of the call and the actual transfer of the call to CVG, there is a short time window in
+       which CVG already knows about the upcoming dialog. This time window can be used by the contact center to attach
+       custom data fields to the call via the Dialog API. These custom data fields can be used by the bot or other
+       downstream systems.
+
+    If you are just looking for a way to pass data about a call from your contact center to your bot, and you are using
+    SIP telephony, then this also can be achieved by adding custom SIP headers (starting with `X-`) to the call.
+    CVG passes these custom SIP headers to the bot during session initialization.
+  version: '{{VERSION}}'
+  title: VIER Cognitive Voice Provisioning API
+  contact:
+    email: support@vier.ai
+paths:
+  /provision/call:
+    post:
+      tags:
+        - provisioning
+      summary: Provision a new call
+      operationId: provisionCall
+      requestBody:
+        description: |-
+          Parameters for the provisioning operation.
+
+          Optional parameters fall back to the settings of the project that was specified.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProvisionCallRequest'
+      responses:
+        '201':
+          description: Call provisioned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProvisionCallResponse'
+        '400':
+          description: Bad request
+        '404':
+          description: Transcriber or synthesizer vendor / profile not found
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProvisionCallResponse'
+        '503':
+          description: Request timeout
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProvisionCallResponse'
+components:
+  schemas:
+    ProvisionCallRequest:
+      type: object
+      required:
+        - resellerToken
+        - projectToken
+        - callId
+        - writeDialogData
+      properties:
+        resellerToken:
+          $ref: 'shared/tokens.yml#/components/schemas/ResellerToken'
+        projectToken:
+          $ref: 'shared/tokens.yml#/components/schemas/ProjectToken'
+        callId:
+          $ref: 'shared/tokens.yml#/components/schemas/CallId'
+        botURL:
+          $ref: 'shared/project.yml#/components/schemas/BotUrl'
+        botAccessToken:
+          $ref: 'shared/project.yml#/components/schemas/BotToken'
+        botConfiguration:
+          $ref: 'shared/project.yml#/components/schemas/BotConfiguration'
+        language:
+          oneOf:
+            - $ref: 'shared/language.yml#/components/schemas/Language'
+            - type: object
+              required:
+                - transcriber
+                - synthesizer
+              properties:
+                transcriber:
+                  $ref: 'shared/language.yml#/components/schemas/Language'
+                synthesizer:
+                  $ref: 'shared/language.yml#/components/schemas/Language'
+        # ideally this would just be named "transcribers"
+        transcriberVendors:
+          $ref: 'shared/speech_service.yml#/components/schemas/TranscriberSelection'
+        # ideally this would just be named "synthesizers"
+        synthesizerVendors:
+          $ref: 'shared/speech_service.yml#/components/schemas/SynthesizerSelection'
+        writeDialogData:
+          type: boolean
+        inactivityTimeout:
+          $ref: 'shared/project.yml#/components/schemas/InactivityTimeout'
+        minimumNoiseLevel:
+          $ref: 'shared/project.yml#/components/schemas/MinimumNoiseLevel'
+        utteranceTimeout:
+          $ref: 'shared/project.yml#/components/schemas/UtteranceTimeout'
+
+    ProvisionCallResponse:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          enum:
+            - Success
+            - Error
+          description: the descriminator
+      discriminator:
+        propertyName: type
+
+    Success:
+      allOf:
+        - $ref: '#/components/schemas/ProvisionCallResponse'
+        - type: object
+          required:
+            - target
+            - dialogId
+          properties:
+            target:
+              $ref: 'shared/phone_number.yml#/components/schemas/PlatformNumber'
+            dialogId:
+              $ref: 'shared/tokens.yml#/components/schemas/DialogId'
+
+    Error:
+      allOf:
+        - $ref: '#/components/schemas/ProvisionCallResponse'
+        - type: object
+          required:
+            - message
+          properties:
+            message:
+              type: string
+              description: the message describing the error

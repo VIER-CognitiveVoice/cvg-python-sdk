@@ -1,0 +1,18 @@
+openapi: 3.0.0
+
+info:
+  title: 'Confidence'
+  version: '{{VERSION}}'
+
+paths: {}
+
+components:
+  schemas:
+    Confidence:
+      type: integer
+      format: confidence
+      minimum: 0
+      maximum: 100
+      description: |-
+        The confidence of the transcription result as a percentage from 0 to 100,
+        or 100 in case of DTMF.

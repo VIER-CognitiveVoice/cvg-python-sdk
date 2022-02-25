@@ -1,0 +1,466 @@
+openapi: 3.0.0
+servers:
+  - description: Production
+    url: https://cognitivevoice.io/v1
+  - description: Staging
+    url: https://stage.cognitivevoice.io/v1
+  - description: Local Server
+    url: https://localhost/v1
+info:
+  description: |-
+    CVG dialog history
+  version: '{{VERSION}}'
+  title: VIER Cognitive Voice Dialog API
+  contact:
+    email: support@vier.ai
+paths:
+  /dialog/{resellerToken}/{dialogId}:
+    parameters:
+      - in: path
+        name: resellerToken
+        schema:
+          $ref: 'shared/tokens.yml#/components/schemas/ResellerToken'
+        required: true
+      - in: path
+        name: dialogId
+        schema:
+          $ref: 'shared/tokens.yml#/components/schemas/DialogId'
+        required: true
+    get:
+      tags:
+        - dialog
+      summary: Get dialog by dialog ID
+      operationId: getDialog
+      description: Get data of a dialog by dialog ID
+      responses:
+        '200':
+          description: Operation successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dialog'
+        '404':
+          description: Reseller or dialog not found
+        '500':
+          description: Server error
+    delete:
+      tags:
+        - dialog
+      summary: Delete dialog by dialog ID
+      operationId: deleteDialog
+      description: Delete data of a dialog by dialog ID
+      responses:
+        '204':
+          description: Operation successful
+        '404':
+          description: Reseller or dialog not found
+        '500':
+          description: Server error
+  /dialog/{resellerToken}/external/{projectToken}/{callId}:
+    get:
+      parameters:
+        - in: path
+          name: resellerToken
+          schema:
+            $ref: 'shared/tokens.yml#/components/schemas/ResellerToken'
+          required: true
+        - in: path
+          name: projectToken
+          schema:
+            $ref: 'shared/tokens.yml#/components/schemas/ProjectToken'
+          required: true
+        - in: path
+          name: callId
+          schema:
+            $ref: 'shared/tokens.yml#/components/schemas/CallId'
+          required: true
+      tags:
+        - dialog
+      summary: Get dialog by external call ID
+      operationId: getDialogByExternalCallId
+      description: Get data of a dialog by external call ID
+      responses:
+        '200':
+          description: Operation successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dialog'
+        '404':
+          description: Reseller or dialog not found
+        '500':
+          description: Server error
+  /dialog/{resellerToken}/{dialogId}/data:
+    post:
+      tags:
+        - dialog
+      summary: Attach custom data to a dialog
+      operationId: attachCustomData
+      parameters:
+        - in: path
+          name: resellerToken
+          schema:
+            $ref: 'shared/tokens.yml#/components/schemas/ResellerToken'
+          required: true
+        - in: path
+          name: dialogId
+          schema:
+            $ref: 'shared/tokens.yml#/components/schemas/DialogId'
+          required: true
+      description: Attach custom data to a dialog
+      responses:
+        '204':
+          description: Operation successful
+        '404':
+          description: Reseller or dialog not found
+        '500':
+          description: Server error
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DialogDataParameters'
+components:
+  schemas:
+    DialogDataParameters:
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          additionalProperties:
+            type: string
+    Dialog:
+      type: object
+      required:
+        - dialogId
+        - data
+      properties:
+        dialogId:
+          $ref: 'shared/tokens.yml#/components/schemas/DialogId'
+        callId:
+          $ref: 'shared/tokens.yml#/components/schemas/CallId'
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Entry'
+    Entry:
+      type: object
+      required:
+        - timestamp
+        - type
+      properties:
+        timestamp:
+          $ref: 'shared/time.yml#/components/schemas/Timestamp'
+        type:
+          type: string
+          enum:
+            - Start
+            - Synthesis
+            - Tone
+            - Transcription
+            - Custom
+            - End
+            - Prompt
+            - Answer
+            - Forward
+            - Bridge
+            - Inactivity
+            - Playback
+            - RecordingStart
+            - RecordingStop
+      discriminator:
+        propertyName: type
+    Start:
+      allOf:
+        - $ref: '#/components/schemas/Entry'
+        - type: object
+          required:
+            - customSipHeaders
+          properties:
+            customSipHeaders:
+              $ref: 'shared/data.yml#/components/schemas/CustomSipHeaders'
+    Synthesis:
+      allOf:
+        - $ref: '#/components/schemas/Entry'
+        - type: object
+          description: |-
+            This event represents a synthesis request as sent by CVG to the individual sythesis vendor. The `text`
+            property will thus not necessarily exactly match the text supplied by the bot. A single Say API request
+            might for example lead to multiple synthesis entries in the dialog due to splitting of long text. When using
+            SSML, the text in these entries will also contain all the XML transformations applied by the platform before
+            submitting it to the sythesis vendor.
+
+            If the bot sent valid SSML, these entries are guaranteed to contain valid SSML as well, however the exact
+            details of the SSML document are not stable and can change at any point as CVG changes adjusts its internal
+            processing.
+          required:
+            - text
+            - vendor
+            - language
+          properties:
+            text:
+              type: string
+            vendor:
+              $ref: 'shared/speech_service.yml#/components/schemas/Vendor'
+            language:
+              $ref: 'shared/language.yml#/components/schemas/Language'
+    Tone:
+      allOf:
+        - $ref: '#/components/schemas/Entry'
+        - type: object
+          required:
+            - tone
+          properties:
+            tone:
+              type: string
+    Transcription:
+      allOf:
+        - $ref: '#/components/schemas/Entry'
+        - type: object
+          required:
+            - text
+            - confidence
+            - vendor
+            - language
+          properties:
+            text:
+              type: string
+            confidence:
+              $ref: 'shared/confidence.yml#/components/schemas/Confidence'
+            vendor:
+              $ref: 'shared/speech_service.yml#/components/schemas/Vendor'
+            language:
+              $ref: 'shared/language.yml#/components/schemas/Language'
+    Prompt:
+      allOf:
+        - $ref: '#/components/schemas/Entry'
+        - type: object
+          properties:
+            promptType:
+              $ref: '#/components/schemas/PromptType'
+    PromptType:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          enum:
+            - MultipleChoice
+            - Number
+      discriminator:
+        propertyName: name
+        mapping:
+          MultipleChoice: '#/components/schemas/MultipleChoicePrompt'
+          Number: '#/components/schemas/NumberPrompt'
+    Answer:
+      allOf:
+        - $ref: '#/components/schemas/Entry'
+        - type: object
+          properties:
+            answerType:
+              $ref: '#/components/schemas/AnswerType'
+            confidence:
+              $ref: 'shared/confidence.yml#/components/schemas/Confidence'
+            vendor:
+              $ref: 'shared/speech_service.yml#/components/schemas/Vendor'
+            language:
+              $ref: 'shared/language.yml#/components/schemas/Language'
+              description: Language used for transcription, or `null` in case of DTMF / timeout.
+    AnswerType:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          enum:
+            - MultipleChoice
+            - Number
+            - Timeout
+          example: Number
+      discriminator:
+        propertyName: name
+        mapping:
+          MultipleChoice: '#/components/schemas/MultipleChoiceAnswer'
+          Number: '#/components/schemas/NumberAnswer'
+          Timeout: '#/components/schemas/TimeoutAnswer'
+    Custom:
+      allOf:
+        - $ref: '#/components/schemas/Entry'
+        - type: object
+          required:
+            - key
+            - value
+          properties:
+            key:
+              type: string
+            value:
+              type: string
+    End:
+      allOf:
+        - $ref: '#/components/schemas/Entry'
+        - type: object
+          required:
+            - reason
+          properties:
+            reason:
+              type: string
+              enum:
+                - botTerminated
+                - callerTerminated
+                - callBridged
+                - callForwarded
+                - botError
+    Forward:
+      allOf:
+        - $ref: '#/components/schemas/Entry'
+        - type: object
+          required:
+            - destination
+          properties:
+            destination:
+              $ref: 'shared/phone_number.yml#/components/schemas/DialoutNumber'
+    Bridge:
+      allOf:
+        - $ref: '#/components/schemas/Entry'
+        - type: object
+          required:
+            - destination
+          properties:
+            destination:
+              $ref: 'shared/phone_number.yml#/components/schemas/DialoutNumber'
+    Inactivity:
+      allOf:
+        - $ref: '#/components/schemas/Entry'
+        - type: object
+          required:
+            - duration
+          properties:
+            duration:
+              $ref: 'shared/time.yml#/components/schemas/InactivityDuration'
+    Playback:
+      allOf:
+        - $ref: '#/components/schemas/Entry'
+        - type: object
+          required:
+            - url
+          properties:
+            url:
+              type: string
+              format: uri
+              example: https://example.org/audio.wav
+              description: The URL of the played audio file.
+    RecordingStart:
+      allOf:
+        - $ref: '#/components/schemas/Entry'
+        - type: object
+          required:
+            - recordingId
+          properties:
+            recordingId:
+              $ref: 'shared/recording.yml#/components/schemas/RecordingId'
+    RecordingStop:
+      allOf:
+        - $ref: '#/components/schemas/Entry'
+        - type: object
+          required:
+            - recordingId
+          properties:
+            recordingId:
+              $ref: 'shared/recording.yml#/components/schemas/RecordingId'
+    # copied from call.yml and slightly adjusted
+    MultipleChoicePrompt:
+      allOf:
+        - $ref: '#/components/schemas/PromptType'
+        - type: object
+          required:
+            - choices
+          properties:
+            choices:
+              type: object
+              additionalProperties:
+                $ref: '#/components/schemas/Synonyms'
+              example:
+                'no':
+                  - 'no'
+                  - nope
+                  - no way
+                  - DTMF_0
+                'yes':
+                  - 'yes'
+                  - yeah
+                  - affirmative
+                  - DTMF_1
+          description: |-
+            Require the user to select one item from a list of pre-defined choices, such as "Yes" / "No".
+            Each choice can be triggered by any number of specified synonyms.
+            A synonym must not be present in multiple choices.
+    Synonyms:
+      type: array
+      minItems: 1
+      items:
+        type: string
+        description: |-
+          A synonym for this choice - either a TTS text, or a DTMF signal.
+          DTMF signals are prefixed by `DTMF_`, such as `DTMF_#`.
+        format: synonym
+    NumberPrompt:
+      allOf:
+        - $ref: '#/components/schemas/PromptType'
+        - type: object
+          properties:
+            submitInputs:
+              $ref: '#/components/schemas/Synonyms'
+              example:
+                - DTMF_#
+                - submit
+              description: The input that terminates the prompt. Must not be a digit.
+            maxDigits:
+              type: integer
+              example: 5
+              minimum: 1
+              description: |-
+                The maximum amount of digits the number can have.
+                If this property is set, input terminates once the limit has been reached.
+          description: |-
+            Require the user to enter a sequence of digits.
+            Input is terminated once one of the `submitSignals` has been detected or the `maxDigits` limit has been reached.
+          anyOf:
+            - required:
+                - submitSignals
+            - required:
+                - maxDigits
+    # copied from bot.yml and slightly adjusted
+    MultipleChoiceAnswer:
+      allOf:
+        - $ref: '#/components/schemas/AnswerType'
+        - type: object
+          required:
+            - id
+            - synonym
+          properties:
+            id:
+              type: string
+              description: The id / key of the choice.
+              example: 'yes'
+            synonym:
+              type: string
+              description: The synonym with which this choice was triggered.
+              example: 'affirmative'
+    NumberAnswer:
+      allOf:
+        - $ref: '#/components/schemas/AnswerType'
+        - type: object
+          required:
+            - value
+          properties:
+            value:
+              type: string
+              description: The number that was entered.
+              example: 8645
+    TimeoutAnswer:
+      allOf:
+        - $ref: '#/components/schemas/AnswerType'

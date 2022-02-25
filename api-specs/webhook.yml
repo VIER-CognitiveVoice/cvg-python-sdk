@@ -1,0 +1,127 @@
+openapi: 3.0.0
+servers:
+  - description: Local Server
+    url: https://localhost:8080
+info:
+  description: |-
+    With the CVG Webhook API any web accessible application can tap into this generic event source in order
+    to implement various automation jobs.
+
+    **Note**: This API is not finalized yet and might see incompatible changes in upcoming versions. We try to keep it
+    as stable as possible, but at this point no guarantee is given.
+  version: '{{VERSION}}'
+  title: VIER Cognitive Voice Webhook API
+  contact:
+    email: support@vier.ai
+
+security:
+  - bearerAuth: []
+
+paths:
+  /event:
+    post:
+      tags:
+        - webhook
+      summary: Receives CVG events
+      operationId: acceptEvent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookEvent'
+      responses:
+        '204':
+          description: Operation successful
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: opaque
+  schemas:
+    WebhookEvent:
+      type: object
+      required:
+        - timestamp
+        - payload
+      properties:
+        timestamp:
+          $ref: 'shared/time.yml#/components/schemas/Timestamp'
+        payload:
+          $ref: '#/components/schemas/EventPayload'
+    EventPayload:
+      type: object
+      description: The information about a specific event.
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          enum:
+            - CallStarted
+            - RecordingAvailable
+            - HealthStatusChanged
+      discriminator:
+        propertyName: type
+    CallStarted:
+      allOf:
+        - $ref: '#/components/schemas/EventPayload'
+        - type: object
+          required:
+            - dialogId
+            - projectContext
+          properties:
+            dialogId:
+              $ref: 'shared/tokens.yml#/components/schemas/DialogId'
+            projectContext:
+              $ref: 'shared/tokens.yml#/components/schemas/ProjectContext'
+            callerNumber: # should've been remoteNumber
+              $ref: 'shared/phone_number.yml#/components/schemas/RemoteNumber'
+    RecordingAvailable:
+      allOf:
+        - $ref: '#/components/schemas/EventPayload'
+        - type: object
+          required:
+            - dialogId
+            - projectContext
+            - url
+            - startTimestamp
+            - duration
+            - dialogPhase
+            - recordingId
+          properties:
+            dialogId:
+              $ref: 'shared/tokens.yml#/components/schemas/DialogId'
+            projectContext:
+              $ref: 'shared/tokens.yml#/components/schemas/ProjectContext'
+            url:
+              type: string
+              format: uri
+            startTimestamp:
+              $ref: 'shared/time.yml#/components/schemas/Timestamp'
+            duration:
+              $ref: 'shared/time.yml#/components/schemas/Duration'
+            dialogPhase:
+              $ref: 'shared/recording.yml#/components/schemas/DialogPhase'
+            recordingId:
+              $ref: 'shared/recording.yml#/components/schemas/RecordingId'
+    HealthStatusChanged:
+      allOf:
+        - $ref: '#/components/schemas/EventPayload'
+        - type: object
+          required:
+            - projectContext
+            - status
+            - url
+          properties:
+            projectContext:
+              $ref: 'shared/tokens.yml#/components/schemas/ProjectContext'
+            status:
+              $ref: 'shared/project_health.yml#/components/schemas/HealthStatus'
+            url:
+              type: string
+              format: uri
+              description: URL to obtain the health events via the health API
+      description: Fires when the health status of a project for the last 10 minutes has changed.

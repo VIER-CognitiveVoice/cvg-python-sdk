@@ -1,0 +1,362 @@
+openapi: 3.0.0
+
+info:
+  title: Provider-aware Service Provisioning API design
+  description: Provider-aware API
+  version: 1.0.0
+
+servers:
+  - url: /v1
+
+tags:
+  - name: provision
+    description: |-
+      Provision resources.
+      
+      For example in order to create a cognitive service the implementor of the API could 
+      perform the following tasks
+    
+      1. create a resource group in Microsoft Azure
+    
+      2. create cognitive service inside the resource group
+  - name: configure
+    description: configure resource
+  - name: delete
+    description: delete resource
+  - name: billing
+    description: returns billing data for a given customer asset number
+  - name: users
+    description: user management
+
+security:
+  - bearerAuth: []
+
+paths:
+  /services/{ca}:
+    parameters:
+      - name: ca
+        in: path
+        description: The customer asset identifier
+        required: true
+        schema:
+          $ref: '#/components/schemas/CustomerAssetId'
+    put:
+      tags:
+        - provision
+      summary: create asset
+      requestBody:
+        description: service is meant to be generic
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProvisioningRequest'
+        required: true
+      responses:
+        202:
+          description: Accepted and provisioning scheduled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProvisioningResponse'
+        400:
+          description: Unsupported provider
+    get:
+      tags:
+        - provision
+      summary: check asset status
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProvisioningState'
+        404:
+          description: 'Not Found'
+    delete:
+      tags:
+        - delete
+      summary: remove resource
+      responses:
+        202:
+          description: Accepted and decommissioning scheduled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProvisioningState'
+        401:
+          description: Authentication required!
+        404:
+          description: 'Not Found'
+  /services/{ca}/configuration:
+    parameters:
+      - name: ca
+        in: path
+        description: The customer asset identifier
+        required: true
+        schema:
+          type: string
+    put:
+      tags:
+        - configure
+      summary: change asset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssetConfiguration'
+      responses:
+        202:
+          description: Accepted and provisioning scheduled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProvisioningState'
+        401:
+          description: Authentication required!
+        404:
+          description: 'Not Found'
+    get:
+      tags:
+        - configure
+      summary: change asset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssetConfiguration'
+      responses:
+        200:
+          description: The asset configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssetConfiguration'
+        401:
+          description: Authentication required!
+        404:
+          description: 'Not Found'
+  /services/{ca}/bill:
+    parameters:
+      - name: ca
+        in: path
+        description: The customer asset identifier
+        required: true
+        schema:
+          type: string
+      - name: from
+        in: query
+        description: Start of billing period
+        required: true
+        schema:
+          $ref: '#/components/schemas/Timestamp'
+      - name: to
+        in: query
+        description: End of billing period (inclusive)
+        required: true
+        schema:
+          $ref: '#/components/schemas/Timestamp'
+    get:
+      tags:
+        - billing
+      summary: billing data
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bill'
+        400:
+          description: Requested billing period is too long.
+        401:
+          description: Authentication required!
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: opaque
+  schemas:
+    AssetMetadata:
+      oneOf:
+        - $ref: '#/components/schemas/CvgAssetMetadata'
+      discriminator:
+        propertyName: provider
+        mapping:
+          cvg: '#/components/schemas/CvgAssetMetadata'
+    CvgAssetMetadata:
+      type: object
+      required:
+        - provider
+        - resellerToken
+        - projectToken
+        - consoleUrl
+        - apiBaseUrl
+      properties:
+        provider:
+          $ref: '#/components/schemas/CvgProvider'
+        resellerToken:
+          type: string
+        projectToken:
+          type: string
+        consoleUrl:
+          type: string
+          format: uri
+        apiBaseUrl:
+          type: string
+          format: uri
+    AssetConfiguration:
+      oneOf:
+        - $ref: '#/components/schemas/CvgAssetConfiguration'
+      discriminator:
+        propertyName: provider
+        mapping:
+          cvg: '#/components/schemas/CvgAssetConfiguration'
+    SharedConfiguration:
+      type: object
+      required:
+        - provider
+      properties:
+        provider:
+          $ref: '#/components/schemas/CvgProvider'
+        users:
+          type: array
+          items:
+            $ref: '#/components/schemas/EmailAddress'
+    CvgAssetConfiguration:
+      allOf:
+        - $ref: '#/components/schemas/SharedConfiguration'
+        - type: object
+          properties:
+            botUrl:
+              $ref: '#/components/schemas/BotUrl'
+            botToken:
+              type: string
+    CvgProvider:
+      type: string
+      enum:
+        - cvg
+    ProvisioningRequest:
+      type: object
+      required:
+        - configuration
+        - initialUsers
+      properties:
+        configuration:
+          $ref: '#/components/schemas/AssetConfiguration'
+        initialUsers:
+          type: array
+          items:
+            $ref: '#/components/schemas/EmailAddress'
+    ProvisioningResponse:
+      type: object
+      required:
+        - assetId
+        - state
+      properties:
+        assetId:
+          $ref: '#/components/schemas/CustomerAssetId'
+        state:
+          $ref: '#/components/schemas/ProvisioningState'
+    ProvisioningState:
+      oneOf:
+        - $ref: '#/components/schemas/ProvisioningStateProcessing'
+        - $ref: '#/components/schemas/ProvisioningStateConverged'
+        - $ref: '#/components/schemas/ProvisioningStateFailed'
+        - $ref: '#/components/schemas/ProvisioningStateDeleting'
+      discriminator:
+        propertyName: status
+        mapping:
+          processing: '#/components/schemas/ProvisioningStateProcessing'
+          converged: '#/components/schemas/ProvisioningStateConverged'
+          failed: '#/components/schemas/ProvisioningStateFailed'
+          deleting: '#/components/schemas/ProvisioningStateDeleting'
+    ProvisioningStateProcessing:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum:
+            - processing
+    ProvisioningStateFailed:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum:
+            - failed
+    ProvisioningStateConverged:
+      type: object
+      required:
+        - status
+        - metadata
+        - configuration
+      properties:
+        status:
+          type: string
+          enum:
+            - converged
+        metadata:
+          $ref: '#/components/schemas/AssetMetadata'
+        configuration:
+          $ref: '#/components/schemas/AssetConfiguration'
+    ProvisioningStateDeleting:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum:
+            - deleting
+    Bill:
+      required:
+        - assetId
+        - usage
+      type: object
+      properties:
+        assetId:
+          $ref: '#/components/schemas/CustomerAssetId'
+        usage:
+          $ref: '#/components/schemas/Usage'
+    Usage:
+      required:
+        - amount
+        - unit
+      properties:
+        amount:
+          type: number
+          format: int32
+          example: 50
+        unit:
+          type: string
+          enum:
+            - requests
+            - dollars
+            - euros
+            - euro cents
+    CustomerAssetId:
+      type: string
+      description: A string that uniquely identifies a customer asset.
+      nullable: false
+    Timestamp:
+      description: An instant of time, measured in milliseconds since the epoch (1970-01-01) in UTC.
+      type: integer
+      format: int64
+      example: 1535546718115
+    EmailAddress:
+      type: string
+      description: An email address that identifies a user account
+      example: 'support@vier.ai'
+    BotUrl:
+      type: string
+      format: uri
+      description: URL CVG can use to send events to a bot
+      example: https://some-bot-system.example.org/v1

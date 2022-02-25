@@ -1,0 +1,16 @@
+openapi: 3.0.0
+
+info:
+  title: 'Call Type'
+  version: '{{VERSION}}'
+
+paths: {}
+
+components:
+  schemas:
+    CallType:
+      type: string
+      enum:
+        - INBOUND
+        - INBOUND_PROVISIONED
+        - OUTBOUND

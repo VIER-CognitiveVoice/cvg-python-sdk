@@ -1,0 +1,43 @@
+openapi: 3.0.0
+
+info:
+  title: 'Phone number wrappers'
+  version: '{{VERSION}}'
+
+paths: {}
+
+components:
+  schemas:
+    PlatformNumber:
+      type: string
+      format: platform-number
+      example: "+49721123456789"
+      description: |-
+        A phone number (+E.164 format) registered at our platform for inbound calling.
+    DialoutNumber:
+      type: string
+      format: dialout-number
+      example: "+49721123456789"
+      description: |-
+        A phone number (+E.164 format) or a SIP address for outgoing calls.
+
+        Note that when using a SIP address, the call is routed via public Internet,
+        so there are no quality of service guarantees.
+    RemoteNumber:
+      type: string
+      format: remote-number
+      example: "+49721123456789"
+      description: |-
+        A phone number (+E.164 format) of the caller (inbound) or callee (outbound).
+    HeadNumber:
+      type: string
+      format: head-number
+      example: "+49721123456789"
+      description: |-
+        A phone number (+E.164 format) that has been used to call in.
+    ExternalNumber:
+      type: string
+      format: external-number
+      example: "+49721123456789"
+      description: |-
+        A phone number (+E.164 format) that can be used to call in.

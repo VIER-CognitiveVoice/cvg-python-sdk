@@ -1,0 +1,253 @@
+openapi: 3.0.0
+servers:
+  - description: Production
+    url: https://cognitivevoice.io/v1
+  - description: Staging
+    url: https://stage.cognitivevoice.io/v1
+  - description: Local Server
+    url: https://localhost/v1
+info:
+  description: |-
+    CVG integration
+  version: '{{VERSION}}'
+  title: VIER Cognitive Voice Integration API
+  contact:
+    email: support@vier.ai
+
+security:
+  - OAuth2: []
+
+paths:
+  /integrations/{resellerToken}:
+    parameters:
+      - name: resellerToken
+        in: path
+        schema:
+          $ref: 'shared/tokens.yml#/components/schemas/ResellerToken'
+        required: true
+    get:
+      tags:
+        - integration
+      summary: Gets all applicable integrations for the given query parameters.
+      operationId: getIntegrations
+      parameters:
+        - name: projectToken
+          in: query
+          schema:
+            $ref: 'shared/tokens.yml#/components/schemas/ProjectToken'
+          required: true
+      responses:
+        '200':
+          description: A list of all integrations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ServiceIntegration'
+    post:
+      tags:
+        - integration
+      summary: Create a new integration
+      operationId: createIntegration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateServiceIntegration'
+      responses:
+        '200':
+          description: Integration successfully created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceIntegration'
+  /integrations/{resellerToken}/{integrationToken}:
+    parameters:
+      - name: resellerToken
+        in: path
+        schema:
+          $ref: 'shared/tokens.yml#/components/schemas/ResellerToken'
+        required: true
+      - name: integrationToken
+        in: path
+        schema:
+          $ref: 'shared/tokens.yml#/components/schemas/IntegrationToken'
+        required: true
+    post:
+      tags:
+        - integration
+      summary: Updates the given integration
+      operationId: updateIntegration
+      requestBody:
+        required: true
+        content:
+          'application/json':
+            schema:
+              $ref: '#/components/schemas/UpdateServiceIntegration'
+      responses:
+        '204':
+          description: Integration successfully updated
+        '404':
+          description: Integration not found
+    delete:
+      tags:
+        - integration
+      summary: Deletes an integration by its token
+      operationId: deleteIntegration
+      responses:
+        '204':
+          description: Integration successfully deleted
+        '404':
+          description: Integration not found
+
+components:
+  securitySchemes:
+    OAuth2:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: '/keycloak/auth/realms/VIER/protocol/openid-connect/auth'
+          tokenUrl: '/keycloak/auth/realms/VIER/protocol/openid-connect/token'
+          scopes:
+            openid: Provides an id_token
+            profile: Provides access to general user information
+  schemas:
+    ServiceIntegration:
+      type: object
+      required:
+        - projectToken
+        - integrationToken
+        - enabled
+        - configuration
+      properties:
+        projectToken:
+          $ref: 'shared/tokens.yml#/components/schemas/ProjectToken'
+        integrationToken:
+          $ref: 'shared/tokens.yml#/components/schemas/IntegrationToken'
+        enabled:
+          type: boolean
+        configuration:
+          $ref: '#/components/schemas/IntegrationConfiguration'
+    UpdateServiceIntegration:
+      type: object
+      required:
+        - enabled
+        - configuration
+      properties:
+        enabled:
+          type: boolean
+        configuration:
+          $ref: '#/components/schemas/IntegrationConfiguration'
+    CreateServiceIntegration:
+      allOf:
+        - $ref: '#/components/schemas/UpdateServiceIntegration'
+        - type: object
+          required:
+            - projectToken
+          properties:
+            projectToken:
+              $ref: 'shared/tokens.yml#/components/schemas/ProjectToken'
+    IntegrationConfiguration:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          enum:
+            - Webhook
+            - VierInteractionAnalytics
+            - GoogleInsights
+      discriminator:
+        propertyName: type
+        mapping:
+          Webhook: '#/components/schemas/WebhookConfiguration'
+          VierInteractionAnalytics: '#/components/schemas/VierInteractionAnalyticsConfiguration'
+          GoogleInsights: '#/components/schemas/GoogleInsightsConfiguration'
+    WebhookConfiguration:
+      allOf:
+        - $ref: '#/components/schemas/IntegrationConfiguration'
+        - type: object
+          required:
+            - baseUrl
+          properties:
+            baseUrl:
+              type: string
+              format: uri
+            bearerToken:
+              type: string
+    VierInteractionAnalyticsConfiguration:
+      allOf:
+        - $ref: '#/components/schemas/IntegrationConfiguration'
+        - type: object
+          required:
+            - location
+            - accessKey
+            - secretKey
+            - bucketName
+          properties:
+            location:
+              $ref: '#/components/schemas/S3Location'
+            accessKey:
+              type: string
+            secretKey:
+              type: string
+            bucketName:
+              type: string
+            recordingIdPrefixFilter:
+              type: string
+              minLength: 1
+            roles:
+              type: array
+              items:
+                type: string
+                minLength: 1
+    GoogleInsightsConfiguration:
+      allOf:
+        - $ref: '#/components/schemas/IntegrationConfiguration'
+        - type: object
+          required:
+            - bucketName
+            - serviceAccount
+            - recording
+          properties:
+            bucketName:
+              type: string
+            serviceAccount:
+              description: A service account with privileges to access Google Insights and Google Cloud Storage
+            recording:
+              type: boolean
+              description: This option enables or disables uploading recordings to Google Insights. If disabled, only text will be uploaded.
+    S3Location:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          enum:
+            - S3AwsRegion
+            - S3BaseUrl
+      discriminator:
+        propertyName: type
+    S3AwsRegion:
+      allOf:
+        - $ref: '#/components/schemas/S3Location'
+        - type: object
+          required:
+            - region
+          properties:
+            region:
+              type: string
+    S3BaseUrl:
+      allOf:
+        - $ref: '#/components/schemas/S3Location'
+        - type: object
+          required:
+            - url
+          properties:
+            url:
+              type: string
+              format: uri

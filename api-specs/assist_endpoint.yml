@@ -1,0 +1,229 @@
+openapi: 3.0.0
+servers:
+  - description: Local Server
+    url: http://localhost:8080
+info:
+  description: |-
+    With the CVG Assist Endpoint API transcription results of the dialog are reported to a assistance system.
+  version: '{{VERSION}}'
+  title: VIER Cognitive Voice Assist Endpoint API
+
+security:
+  - bearerAuth: []
+
+paths:
+  /speaker/connected:
+    post:
+      tags:
+        - assist
+      summary: Reports a newly connected speaker
+      description: Reports that a new speaker connected to the assist session
+      operationId: reportConnectedSpeaker
+      responses:
+        '204':
+          description: Operation successful
+        '400':
+          description: Bad request
+      requestBody:
+        description: Parameters for the session operation
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssistSpeakerConnectedParameters'
+  /speaker/disconnected:
+    post:
+      tags:
+        - assist
+      summary: Reports a disconnected speaker
+      description: Reports that one of the connected speakers has disconnected
+      operationId: reportDisconnectedSpeaker
+      responses:
+        '204':
+          description: Operation successful
+        '400':
+          description: Bad request
+      requestBody:
+        description: Parameters for the session operation
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssistSpeakerDisconnectedParameters'
+  /message:
+    post:
+      tags:
+        - assist
+      summary: Report a message
+      operationId: reportMessage
+      description: Reports a transcribed utterance together with the confidence level.
+      requestBody:
+        description: Parameters for the report message endpoint
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssistMessageParameters'
+      responses:
+        '204':
+          description: Operation successful
+        '400':
+          description: Bad request
+        '404':
+          description: dialogId not found
+        '500':
+          description: Server error
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: opaque
+  schemas:
+    AssistSessionId:
+      type: string
+      example: 09e59647-5c77-4c02-a1c5-7fb2b47060f1
+      description: |- 
+        The id of this session ID. The ID might originate from a contact center.
+        Depending on the assist scenario this session ID may be a valid DialogId, which can be used in with other
+        CVG APIs.
+    AssistMessageParameters:
+      type: object
+      required:
+        - sessionId
+        - projectContext
+        - timestamp
+        - callback
+        - type
+        - speaker
+      properties:
+        sessionId:
+          $ref: '#/components/schemas/AssistSessionId'
+        projectContext:
+          $ref: 'shared/tokens.yml#/components/schemas/ProjectContext'
+        timestamp:
+          $ref: 'shared/time.yml#/components/schemas/Timestamp'
+        callback:
+          $ref: 'shared/project.yml#/components/schemas/Callback'
+        type:
+          type: string
+          enum:
+            - Speech
+            - Dtmf
+        speaker:
+          $ref: 'shared/speaker.yml#/components/schemas/Speaker'
+      discriminator:
+        propertyName: type
+        mapping:
+          Speech: '#/components/schemas/AssistMessageSpeechParameters'
+          Dtmf: '#/components/schemas/AssistMessageDtmfParameters'
+    AssistMessageSpeechParameters:
+      allOf:
+        - $ref: '#/components/schemas/AssistMessageParameters'
+        - type: object
+          required:
+            - text
+            - confidence
+            - vendor
+            - language
+          properties:
+            text:
+              type: string
+              example: Hello!
+            confidence:
+              $ref: 'shared/confidence.yml#/components/schemas/Confidence'
+            vendor:
+              $ref: 'shared/speech_service.yml#/components/schemas/Vendor'
+            language:
+              $ref: 'shared/language.yml#/components/schemas/Language'
+    AssistMessageDtmfParameters:
+      allOf:
+        - $ref: '#/components/schemas/AssistMessageParameters'
+        - type: object
+          required:
+            - tone
+          properties:
+            tone:
+              type: string
+              enum:
+                - '0'
+                - '1'
+                - '2'
+                - '3'
+                - '4'
+                - '5'
+                - '6'
+                - '7'
+                - '8'
+                - '9'
+                - 'A'
+                - 'B'
+                - 'C'
+                - 'D'
+                - '*'
+                - '#'
+    AssistSpeakerConnectedParameters:
+      type: object
+      required:
+        - sessionId
+        - projectContext
+        - timestamp
+        - callback
+        - speaker
+        - transcriberLanguage
+        - callParties
+        - customSipHeaders
+        - customDialogData
+      properties:
+        sessionId:
+          $ref: '#/components/schemas/AssistSessionId'
+        projectContext:
+          $ref: 'shared/tokens.yml#/components/schemas/ProjectContext'
+        timestamp:
+          $ref: 'shared/time.yml#/components/schemas/Timestamp'
+        callback:
+          $ref: 'shared/project.yml#/components/schemas/Callback'
+        speaker:
+          $ref: 'shared/speaker.yml#/components/schemas/Speaker'
+        transcriberLanguage:
+          $ref: 'shared/language.yml#/components/schemas/Language'
+        callParties:
+          $ref: '#/components/schemas/CallParties'
+        customSipHeaders:
+          $ref: 'shared/data.yml#/components/schemas/CustomSipHeaders'
+        customDialogData:
+          $ref: 'shared/data.yml#/components/schemas/CustomDialogData'
+    AssistSpeakerDisconnectedParameters:
+      type: object
+      required:
+        - sessionId
+        - projectContext
+        - timestamp
+        - callback
+        - speaker
+      properties:
+        sessionId:
+          $ref: '#/components/schemas/AssistSessionId'
+        projectContext:
+          $ref: 'shared/tokens.yml#/components/schemas/ProjectContext'
+        timestamp:
+          $ref: 'shared/time.yml#/components/schemas/Timestamp'
+        callback:
+          $ref: 'shared/project.yml#/components/schemas/Callback'
+        speaker:
+          $ref: 'shared/speaker.yml#/components/schemas/Speaker'
+    CallParties:
+      type: object
+      required:
+        - local
+      properties:
+        local:
+          $ref: 'shared/phone_number.yml#/components/schemas/PlatformNumber'
+        remote:
+          type: string
+          format: remote-number
+          example: "+49721123456789"
+          description: |-
+            A phone number (+E.164 format) of the caller (inbound) or callee (outbound).
+            If the number is unknown / suppressed, this is an empty string (`""`).

@@ -1,0 +1,38 @@
+openapi: 3.0.0
+
+info:
+  title: 'Time related objects'
+  version: '{{VERSION}}'
+
+paths: {}
+
+components:
+  schemas:
+    Timestamp:
+      description: An instant of time, measured in milliseconds since the epoch (1970-01-01) in UTC.
+      type: integer
+      format: int64
+      example: 1535546718115
+
+    Duration:
+      description: An amount of time, measured in milliseconds.
+      type: integer
+      format: duration
+      example: 60000
+
+    InactivityDuration:
+      description: |-
+        The duration of the inactivity period in milliseconds.
+        The timestamp of the last activity in this call can be calculated with `timestamp - duration`.
+
+        When an inactivity timeout triggers within a potential utterance, we can't yet know whether that utterance
+        will result in a successful transcription or if it was likely just background noise. To make sure
+        inactivity events aren't sent in the former case, the events are delayed to the end of the utterance.
+        As a result, this duration may be longer than the inactivity timeout configured in the project settings.
+      type: integer
+      format: duration
+    Timezone:
+      type: string
+      format: timezone
+      description: A timezone name or time offset to UTC.
+      example: '+01:00'

@@ -1,0 +1,219 @@
+openapi: 3.0.0
+servers:
+  - description: Production
+    url: https://cognitivevoice.io/v1
+  - description: Staging
+    url: https://stage.cognitivevoice.io/v1
+  - description: Local Server
+    url: https://localhost/v1
+
+info:
+  description: |-
+    With the CVG Assist API you can use live transcriptions of customers to provide in-call agent assistance.
+
+    CVG Assist API requires some integration with contact center software to link ACD phone number, dialogID und agentID.
+    The call has to be bridged to the contact center head number of e.g. a hotline plus an extension.
+    The contact center then has to invoke `/assist/accept` with the phone number.
+
+    Integration with VIER Engage is available. Ask us if you are interested in integrating other contact center software.
+
+    CVG Assist API is part of the VIER Cognitive Voice Gateway.
+
+    For more details, see [our documentation](/docs/Essential-Use-Cases.html#agent-assistance).
+  version: '{{VERSION}}'
+  title: VIER Cognitive Voice Assist API
+  contact:
+    email: support@vier.ai
+
+paths:
+  /assist/accept:
+    post:
+      tags:
+        - assist
+      summary: Accept assist
+      operationId: acceptAssist
+      description: |-
+        Accept assist for the phone number of a bridge call (head number + extension).
+        Frees the headnumber/extension combination for further use.
+      requestBody:
+        description: Parameters for the accept assist operation
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcceptAssistParameters'
+      responses:
+        '200':
+          description: Operation successful
+          content:
+            application/json:
+              schema:
+                $ref: 'shared/tokens.yml#/components/schemas/DialogId'
+        '400':
+          description: Bad request
+        '404':
+          description: No bridge call for this phone number or was already accepted
+        '500':
+          description: Server error
+  /assist/transcription/start:
+    post:
+      tags:
+        - assist
+      summary: Start transcription
+      operationId: startTranscription
+      description: Start transcription for a speaker in a call.
+      requestBody:
+        description: Parameters for the start transcription operation
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TranscriptionStartParameters'
+      responses:
+        '204':
+          description: Operation successful
+        '400':
+          description: Bad request - assist is not active for this call or transcription has already been started for this speaker.
+        '404':
+          description: No dialog found for this `resellerToken` + `dialogId` combination
+        '500':
+          description: Server error
+  /assist/transcription/stop:
+    post:
+      tags:
+        - assist
+      summary: Stop transcription
+      operationId: stopTranscription
+      description: Stop transcription for a speaker in a call.
+      requestBody:
+        description: Parameters for the stop transcription operation
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TranscriptionStopParameters'
+      responses:
+        '204':
+          description: Operation successful
+        '400':
+          description: Bad request - assist is not active for this call or transcription has already been stopped for this speaker.
+        '404':
+          description: No dialog found for this `resellerToken` + `dialogId` combination
+        '500':
+          description: Server error
+  /assist/recording/start:
+    post:
+      tags:
+        - assist
+      summary: Start or resume recording of the call
+      operationId: startRecording
+      description: |-
+        Starts or resumes recording of the call.
+
+        IMPORTANT: it is the responsibility of the API user to ensure that recording the participants
+        of the call is legal according to the privacy laws and regulations that apply in the respective country.
+
+        Recordings can only be made if this has been explicitly allowed in each layer of the hierarchy
+        (reseller, customer, account, project). They are stored for the duration specified in the project settings.
+      responses:
+        '204':
+          description: Operation successful
+        '400':
+          description: Bad request - call recording is already started / terminated or the call is not bridged
+        '403':
+          description: Recordings are disabled for the project this call belongs to
+        '404':
+          description: No dialog found for this `resellerToken` + `dialogId` combination
+      requestBody:
+        description: Parameters for the recording start operation
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssistRecordingStartParameters'
+  /assist/recording/stop:
+    post:
+      tags:
+        - assist
+      summary: Pause or terminate recording of the call
+      operationId: stopRecording
+      responses:
+        '204':
+          description: Operation successful
+        '400':
+          description: Bad request - call recording is already stopped or the call is not bridged
+        '403':
+          description: Recordings are disabled for the project this call belongs to
+        '404':
+          description: No dialog found for this `resellerToken` + `dialogId` combination
+      requestBody:
+        description: Parameters for the recording stop operation
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssistRecordingStopParameters'
+
+components:
+  schemas:
+    AcceptAssistParameters:
+      type: object
+      required:
+        - resellerToken
+        - phoneNumber
+        - callbackUrl
+      properties:
+        resellerToken:
+          $ref: 'shared/tokens.yml#/components/schemas/ResellerToken'
+        phoneNumber:
+          $ref: 'shared/phone_number.yml#/components/schemas/RemoteNumber'
+        callbackUrl:
+          type: string
+          description: The base URL for sending transcription events.
+        authToken:
+          type: string
+          description: A token that is used to authenticate requests to the callback URL.
+    TranscriptionStartParameters:
+      type: object
+      required:
+        - resellerToken
+        - dialogId
+        - speaker
+      properties:
+        resellerToken:
+          $ref: 'shared/tokens.yml#/components/schemas/ResellerToken'
+        dialogId:
+          $ref: 'shared/tokens.yml#/components/schemas/DialogId'
+        speaker:
+          $ref: 'shared/speaker.yml#/components/schemas/Speaker'
+    TranscriptionStopParameters:
+      type: object
+      required:
+        - resellerToken
+        - dialogId
+        - speaker
+      properties:
+        resellerToken:
+          $ref: 'shared/tokens.yml#/components/schemas/ResellerToken'
+        dialogId:
+          $ref: 'shared/tokens.yml#/components/schemas/DialogId'
+        speaker:
+          $ref: 'shared/speaker.yml#/components/schemas/Speaker'
+    AssistRecordingStartParameters:
+      allOf:
+        - type: object
+          required:
+            - resellerToken
+          properties:
+            resellerToken:
+              $ref: 'shared/tokens.yml#/components/schemas/ResellerToken'
+        - $ref: 'shared/recording.yml#/components/schemas/RecordingStartParameters'
+    AssistRecordingStopParameters:
+      allOf:
+        - type: object
+          required:
+            - resellerToken
+          properties:
+            resellerToken:
+              $ref: 'shared/tokens.yml#/components/schemas/ResellerToken'
+        - $ref: 'shared/recording.yml#/components/schemas/RecordingStopParameters'

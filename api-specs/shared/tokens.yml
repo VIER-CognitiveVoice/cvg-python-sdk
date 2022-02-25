@@ -1,0 +1,79 @@
+openapi: 3.0.0
+
+info:
+  title: 'Tokens'
+  version: '{{VERSION}}'
+
+paths: {}
+
+components:
+  schemas:
+    DialogId:
+      type: string
+      format: dialog-id
+      example: 09e59647-5c77-4c02-a1c5-7fb2b47060f1
+      description: The id of a dialog.
+    CallId:
+      type: string
+      format: call-id
+      minLength: 1
+      maxLength: 50
+      example: someRandomId
+      description: |-
+        This ID can be an arbitrary string provided by the client. The ID should be chosen in a way that
+        guarantees uniqueness across a project for as long as the dialog data is retained.
+    ProfileToken:
+      type: string
+      format: profile-token
+      example: 091481b1-b657-4c0f-a7ed-b7b177b237ef
+      description: The unique token of a speech service profile. You can find the token on the configuration page of the profile.
+    IntegrationToken:
+      type: string
+      format: integration-token
+      example: 9fa6338e-2546-407c-aeb1-91ac2c4d3056
+      description: The unique token of a external service integration.
+    ProjectToken:
+      type: string
+      format: project-token
+      example: 07c7c91f-16e7-4891-984a-ee421f4c3ffc
+      description: The unique token of a project. You can find your token on your project configuration page.
+    AccountToken:
+      type: string
+      format: account-token
+      example: 614b2146-4034-447d-a0f6-25592e746ff5
+      description: The unique token of an account. You can find your token on your account configuration page.
+    CustomerToken:
+      type: string
+      format: customer-token
+      example: 0beec33e-cd1d-4aa0-8325-ce1b60767ec6
+      description: The unique token of a customer. You can find your token on your customer configuration page.
+    ResellerToken:
+      type: string
+      format: reseller-token
+      example: eb1c739c-06e0-4f4c-8056-8665e31425e1
+      description: The unique token of a reseller. You can find your token on your project configuration page.
+    ProjectContext:
+      type: object
+      description: This object encapsulates the tokens of the organizational units relevant for most API calls.
+      required:
+        - projectToken
+        - resellerToken
+      properties:
+        projectToken:
+          $ref: '#/components/schemas/ProjectToken'
+        resellerToken:
+          $ref: '#/components/schemas/ResellerToken'
+    FullProjectContext:
+      allOf:
+        - $ref: '#/components/schemas/ProjectContext'
+        - type: object
+          description: This object encapsulates the tokens of all the organizational units of a single project.
+          required:
+            - accountToken
+            - customerToken
+          properties:
+            accountToken:
+              $ref: '#/components/schemas/AccountToken'
+            customerToken:
+              $ref: '#/components/schemas/CustomerToken'
+

@@ -1,0 +1,16 @@
+openapi: 3.0.0
+
+info:
+  title: 'Language related objects'
+  version: '{{VERSION}}'
+
+paths: {}
+
+components:
+  schemas:
+    Language:
+      type: string
+      format: language-code
+      description: A language code like `de-DE` or `en-US`.
+      example: 'de-DE'
+      minLength: 1
