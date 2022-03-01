@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Merge apis/__init__.py
-CLIENTS=("webhook.yml" "assist_endpoint.yml" "call.yml")
+CLIENTS=("assist.yml" "dialog.yml" "call.yml")
 
 for f in "${CLIENTS[@]}"
 do
