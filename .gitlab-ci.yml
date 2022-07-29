@@ -26,5 +26,5 @@ package_python:
   artifacts:
     name: cvg-python-sdk-${CI_COMMIT_SHA}.tar.gz
     paths:
-      - out/dist/cvg-python-sdk-1.0.0.tar.gz
+      - out/dist/*.tar.gz
     expire_in: 1 days
