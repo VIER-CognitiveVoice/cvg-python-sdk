@@ -108,8 +108,8 @@ components:
       type: oauth2
       flows:
         authorizationCode:
-          authorizationUrl: '/keycloak/auth/realms/VIER/protocol/openid-connect/auth'
-          tokenUrl: '/keycloak/auth/realms/VIER/protocol/openid-connect/token'
+          authorizationUrl: '/keycloak/realms/VIER/protocol/openid-connect/auth'
+          tokenUrl: '/keycloak/realms/VIER/protocol/openid-connect/token'
           scopes:
             openid: Provides an id_token
             profile: Provides access to general user information
@@ -216,7 +216,7 @@ components:
             bucketName:
               type: string
             serviceAccount:
-              description: A service account with privileges to access Google Insights and Google Cloud Storage
+              $ref: 'shared/google.yml#/components/schemas/GoogleInsightsServiceAccount'
             recording:
               type: boolean
               description: This option enables or disables uploading recordings to Google Insights. If disabled, only text will be uploaded.
@@ -232,6 +232,9 @@ components:
             - S3BaseUrl
       discriminator:
         propertyName: type
+        mapping:
+          S3AwsRegion: '#/components/schemas/S3AwsRegion'
+          S3BaseUrl: '#/components/schemas/S3BaseUrl'
     S3AwsRegion:
       allOf:
         - $ref: '#/components/schemas/S3Location'

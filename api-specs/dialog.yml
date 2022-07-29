@@ -72,7 +72,7 @@ paths:
         - in: path
           name: callId
           schema:
-            $ref: 'shared/tokens.yml#/components/schemas/CallId'
+            $ref: 'shared/tokens.yml#/components/schemas/ExternalCallId'
           required: true
       tags:
         - dialog
@@ -140,7 +140,7 @@ components:
         dialogId:
           $ref: 'shared/tokens.yml#/components/schemas/DialogId'
         callId:
-          $ref: 'shared/tokens.yml#/components/schemas/CallId'
+          $ref: 'shared/tokens.yml#/components/schemas/ExternalCallId'
         data:
           type: array
           items:
@@ -172,6 +172,21 @@ components:
             - RecordingStop
       discriminator:
         propertyName: type
+        mapping:
+          Start: '#/components/schemas/Start'
+          Synthesis: '#/components/schemas/Synthesis'
+          Tone: '#/components/schemas/Tone'
+          Transcription: '#/components/schemas/Transcription'
+          Custom: '#/components/schemas/Custom'
+          End: '#/components/schemas/End'
+          Prompt: '#/components/schemas/Prompt'
+          Answer: '#/components/schemas/Answer'
+          Forward: '#/components/schemas/Forward'
+          Bridge: '#/components/schemas/Bridge'
+          Inactivity: '#/components/schemas/Inactivity'
+          Playback: '#/components/schemas/Playback'
+          RecordingStart: '#/components/schemas/RecordingStart'
+          RecordingStop: '#/components/schemas/RecordingStop'
     Start:
       allOf:
         - $ref: '#/components/schemas/Entry'
@@ -186,11 +201,11 @@ components:
         - $ref: '#/components/schemas/Entry'
         - type: object
           description: |-
-            This event represents a synthesis request as sent by CVG to the individual sythesis vendor. The `text`
+            This event represents a synthesis request as sent by CVG to the individual synthesis vendor. The `text`
             property will thus not necessarily exactly match the text supplied by the bot. A single Say API request
             might for example lead to multiple synthesis entries in the dialog due to splitting of long text. When using
             SSML, the text in these entries will also contain all the XML transformations applied by the platform before
-            submitting it to the sythesis vendor.
+            submitting it to the synthesis vendor.
 
             If the bot sent valid SSML, these entries are guaranteed to contain valid SSML as well, however the exact
             details of the SSML document are not stable and can change at any point as CVG changes adjusts its internal
@@ -203,7 +218,7 @@ components:
             text:
               type: string
             vendor:
-              $ref: 'shared/speech_service.yml#/components/schemas/Vendor'
+              $ref: 'shared/speech_service.yml#/components/schemas/SpeechServiceVendor'
             language:
               $ref: 'shared/language.yml#/components/schemas/Language'
     Tone:
@@ -230,7 +245,7 @@ components:
             confidence:
               $ref: 'shared/confidence.yml#/components/schemas/Confidence'
             vendor:
-              $ref: 'shared/speech_service.yml#/components/schemas/Vendor'
+              $ref: 'shared/speech_service.yml#/components/schemas/SpeechServiceVendor'
             language:
               $ref: 'shared/language.yml#/components/schemas/Language'
     Prompt:
@@ -265,7 +280,7 @@ components:
             confidence:
               $ref: 'shared/confidence.yml#/components/schemas/Confidence'
             vendor:
-              $ref: 'shared/speech_service.yml#/components/schemas/Vendor'
+              $ref: 'shared/speech_service.yml#/components/schemas/SpeechServiceVendor'
             language:
               $ref: 'shared/language.yml#/components/schemas/Language'
               description: Language used for transcription, or `null` in case of DTMF / timeout.
@@ -322,7 +337,7 @@ components:
             - destination
           properties:
             destination:
-              $ref: 'shared/phone_number.yml#/components/schemas/DialoutNumber'
+              $ref: 'shared/phone_number.yml#/components/schemas/OutboundCallDestination'
     Bridge:
       allOf:
         - $ref: '#/components/schemas/Entry'
@@ -331,7 +346,7 @@ components:
             - destination
           properties:
             destination:
-              $ref: 'shared/phone_number.yml#/components/schemas/DialoutNumber'
+              $ref: 'shared/phone_number.yml#/components/schemas/OutboundCallDestination'
     Inactivity:
       allOf:
         - $ref: '#/components/schemas/Entry'

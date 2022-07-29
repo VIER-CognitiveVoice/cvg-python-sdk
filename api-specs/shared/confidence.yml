@@ -10,7 +10,6 @@ components:
   schemas:
     Confidence:
       type: integer
-      format: confidence
       minimum: 0
       maximum: 100
       description: |-

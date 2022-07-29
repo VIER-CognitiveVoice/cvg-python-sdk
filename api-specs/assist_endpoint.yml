@@ -134,7 +134,7 @@ components:
             confidence:
               $ref: 'shared/confidence.yml#/components/schemas/Confidence'
             vendor:
-              $ref: 'shared/speech_service.yml#/components/schemas/Vendor'
+              $ref: 'shared/speech_service.yml#/components/schemas/SpeechServiceVendor'
             language:
               $ref: 'shared/language.yml#/components/schemas/Language'
     AssistMessageDtmfParameters:
@@ -215,15 +215,8 @@ components:
           $ref: 'shared/speaker.yml#/components/schemas/Speaker'
     CallParties:
       type: object
-      required:
-        - local
       properties:
         local:
-          $ref: 'shared/phone_number.yml#/components/schemas/PlatformNumber'
+          $ref: 'shared/phone_number.yml#/components/schemas/CustomerLocalParty'
         remote:
-          type: string
-          format: remote-number
-          example: "+49721123456789"
-          description: |-
-            A phone number (+E.164 format) of the caller (inbound) or callee (outbound).
-            If the number is unknown / suppressed, this is an empty string (`""`).
+          $ref: 'shared/phone_number.yml#/components/schemas/CustomerRemoteParty'

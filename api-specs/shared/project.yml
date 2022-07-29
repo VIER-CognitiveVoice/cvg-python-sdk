@@ -10,12 +10,10 @@ components:
   schemas:
     BotUrl:
       type: string
-      format: bot-url
       description: URL to the server that implements the Bot API.
       example: http://echo-rest-bot:9090
     BotToken:
       type: string
-      format: bot-token
       description: A bearer token that is used for calls to the Bot API.
     BotConfiguration:
       description: |-
@@ -23,16 +21,14 @@ components:
         Please consult the documentation of the bot you are using for the required format.
     InactivityTimeout:
       type: integer
-      format: inactivity-timeout
       description: |-
-        Optional parameter. If present, activates the inactivity detection timeout.
+        Duration after which the inactivity detection timeout occurs.
         The value is in milliseconds.
       example: 15000
       minimum: 2000
       maximum: 20000
     MinimumNoiseLevel:
       type: integer
-      format: minimum-noise-level
       description: |-
         Optional transcription parameter. A level in dB that a signal must
         surpass to be considered at all.
@@ -41,7 +37,6 @@ components:
       maximum: -30
     UtteranceTimeout:
       type: integer
-      format: utterance-timeout
       example: 500
       minimum: 200
       maximum: 1000
@@ -50,6 +45,7 @@ components:
         that must occur after non-noise to complete an utterance.
     Callback:
       type: string
+      format: uri
       description: |-
         The base URL against which API calls should be made, e.g. https://cognitivevoice.io/v1 for the
         production environment and https://stage.cognitivevoice.io/v1 for the staging environment.

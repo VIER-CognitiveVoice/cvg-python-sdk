@@ -8,36 +8,32 @@ paths: {}
 
 components:
   schemas:
-    PlatformNumber:
+    E164Number:
       type: string
-      format: platform-number
       example: "+49721123456789"
       description: |-
         A phone number (+E.164 format) registered at our platform for inbound calling.
-    DialoutNumber:
+    OutboundCallDestination:
       type: string
-      format: dialout-number
       example: "+49721123456789"
       description: |-
         A phone number (+E.164 format) or a SIP address for outgoing calls.
 
         Note that when using a SIP address, the call is routed via public Internet,
         so there are no quality of service guarantees.
-    RemoteNumber:
+    CustomerLocalParty:
       type: string
-      format: remote-number
+      example: "+49721123456789"
+      description: |-
+        A phone number (+E.164 format) of the callee (inbound) or caller (outbound).
+    CustomerRemoteParty:
+      type: string
       example: "+49721123456789"
       description: |-
         A phone number (+E.164 format) of the caller (inbound) or callee (outbound).
-    HeadNumber:
+    LegacyCustomerRemoteParty:
       type: string
-      format: head-number
       example: "+49721123456789"
       description: |-
-        A phone number (+E.164 format) that has been used to call in.
-    ExternalNumber:
-      type: string
-      format: external-number
-      example: "+49721123456789"
-      description: |-
-        A phone number (+E.164 format) that can be used to call in.
+        A phone number (+E.164 format) of the caller (inbound) or callee (outbound).
+        If the number is unknown / suppressed, this is an empty string (`""`).

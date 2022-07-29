@@ -24,6 +24,7 @@ components:
 
           - `GOOGLE`
           - `MICROSOFT`
+          - `IBM`
       items:
         type: string
       minItems: 1
@@ -43,15 +44,15 @@ components:
         The following synthesizer vendors are currently available:
 
           - `GOOGLE`
-          - `AMAZON`
-          - `NUANCE`
           - `MICROSOFT`
           - `IBM`
+          - `AMAZON`
+          - `NUANCE`
       items:
         type: string
       minItems: 1
 
-    Vendor:
+    SpeechServiceVendor:
       type: string
       format: speech-service
       description: A synthesizer / transcriber vendor name

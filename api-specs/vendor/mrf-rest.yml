@@ -25,9 +25,9 @@ securityDefinitions:
 security:
   - basicAuth: []
 consumes:
-  - application/json; charset=utf-8
+  - application/json
 produces:
-  - application/json; charset=utf-8
+  - application/json
 
 paths:
 # Status
@@ -1441,6 +1441,31 @@ paths:
             items:
               $ref: "#/definitions/Synthesizer"
 
+  /synthesizers/languages:
+    get:
+      tags:
+        - synthesizer
+      summary: Get a map from supported languages to a list of vendors supportings the language.
+      description: >
+        This information is a summary of the capabilities of the backend systems we are using. So while
+        backend systems become unavailable/available, this summary might change.
+
+        Backend systems becoming unavailable/available should only happen in case of
+        updates and/or incidents, so it should be either announced or rare.
+      operationId: getSynthesizerLanguages
+      parameters:
+        - in: query
+          name: providerId
+          description: The provider ID of the provider in use by the client.
+          required: true
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: A map from languages to a list of vendors supporting them.
+          schema:
+            $ref: "#/definitions/SynthesizerLanguages"
+
   /synthesizers/{id}:
     get:
       tags:
@@ -1582,6 +1607,31 @@ paths:
             type: array
             items:
               $ref: "#/definitions/Recognizer"
+
+  /recognizers/languages:
+    get:
+      tags:
+        - recognizer
+      summary: Get a map from supported languages to a list of vendors supportings the language.
+      description: >
+        This information is a summary of the capabilities of the backend systems we are using. So while
+        backend systems become unavailable/available, this summary might change.
+
+        Backend systems becoming unavailable/available should only happen in case of
+        updates and/or incidents, so it should be either announced or rare.
+      operationId: getRecognizerLanguages
+      parameters:
+        - in: query
+          name: providerId
+          description: The provider ID of the provider in use by the client.
+          required: true
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: A map from languages to a list of vendors supporting them.
+          schema:
+            $ref: "#/definitions/RecognizerLanguages"
 
   /recognizers/{id}:
     get:
@@ -1749,6 +1799,31 @@ paths:
             items:
               $ref: "#/definitions/Transcriber"
 
+  /transcribers/languages:
+    get:
+      tags:
+        - transcriber
+      summary: Get a map from supported languages to a list of vendors supportings the language.
+      description: >
+        This information is a summary of the capabilities of the backend systems we are using. So while
+        backend systems become unavailable/available, this summary might change.
+
+        Backend systems becoming unavailable/available should only happen in case of
+        updates and/or incidents, so it should be either announced or rare.
+      operationId: getTranscriberLanguages
+      parameters:
+        - in: query
+          name: providerId
+          description: The provider ID of the provider in use by the client.
+          required: true
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: A map from languages to a list of vendors supporting them.
+          schema:
+            $ref: "#/definitions/TranscriberLanguages"
+
   /transcribers/{id}:
     get:
       tags:
@@ -1894,7 +1969,7 @@ paths:
   /httpStreamers/{id}:
     get:
       tags:
-        - HttpStreamer
+        - httpStreamer
       summary: Get a HttpStreamer by ID
       description: ""
       operationId: getHttpStreamer
@@ -1917,7 +1992,7 @@ paths:
 
     delete:
       tags:
-        - HttpStreamer
+        - httpStreamer
       summary: Delete a HttpStreamer
       description: >
         Deleting a HttpStreamer will stop it.
@@ -1940,7 +2015,7 @@ paths:
   /httpStreamers/{id}/stream:
     post:
       tags:
-        - HttpStreamer
+        - httpStreamer
       summary: Start to stream incoming audio to the given URL
       description: ""
       operationId: stream
@@ -1967,7 +2042,7 @@ paths:
   /httpStreamers/{id}/stop:
     post:
       tags:
-        - HttpStreamer
+        - httpStreamer
       summary: Stop a HttpStreamer
       description: ""
       operationId: stopHttpStreamer
@@ -2382,8 +2457,7 @@ definitions:
       - eventEndpoint
     properties:
       id:
-        type: integer
-        format: int64
+        $ref: "#/definitions/ProviderId"
       nodes:
         type: array
         items:
@@ -2452,8 +2526,7 @@ definitions:
       - timestamp
     properties:
       providerId:
-        type: integer
-        format: int64
+        $ref: "#/definitions/ProviderId"
       type:
         type: string
         enum:
@@ -2475,11 +2548,9 @@ definitions:
       - number
     properties:
       id:
-        type: integer
-        format: int64
+        $ref: "#/definitions/NumberId"
       providerId:
-        type: integer
-        format: int64
+        $ref: "#/definitions/ProviderId"
       number:
         type: string
       codecs:
@@ -2494,8 +2565,7 @@ definitions:
       - number
     properties:
       providerId:
-        type: integer
-        format: int64
+        $ref: "#/definitions/ProviderId"
       number:
         type: string
       options:
@@ -2540,11 +2610,9 @@ definitions:
       - sipUris
     properties:
       id:
-        type: integer
-        format: int64
+        $ref: "#/definitions/SipAuthCredentialsId"
       providerId:
-        type: integer
-        format: int64
+        $ref: "#/definitions/ProviderId"
       username:
         type: string
       password:
@@ -2571,8 +2639,7 @@ definitions:
       - providerId
     properties:
       providerId:
-        type: integer
-        format: int64
+        $ref: "#/definitions/ProviderId"
 
 # Call definitions
   Call:
@@ -2583,11 +2650,9 @@ definitions:
       - callParties
     properties:
       id:
-        type: integer
-        format: int64
+        $ref: "#/definitions/CallId"
       providerId:
-        type: integer
-        format: int64
+        $ref: "#/definitions/ProviderId"
       sequenceNumber:
         type: string
       callParties:
@@ -2600,8 +2665,7 @@ definitions:
       - callHeaders
     properties:
       providerId:
-        type: integer
-        format: int64
+        $ref: "#/definitions/ProviderId"
       callParties:
         $ref: "#/definitions/CallParties"
       callHeaders:
@@ -2613,8 +2677,7 @@ definitions:
         description: >
           If this list is non-empty, it specifies which D-channels may be used for the new outgoing call.
       closeToCallId:
-        type: integer
-        format: int64
+        $ref: "#/definitions/CallId"
         description: >
           If present, try to place the new outgoing call "close to" the call with the given ID,
           in order to minimize resource usage and latency when connecting this call with another call.
@@ -2718,6 +2781,8 @@ definitions:
           type: string
         description: >
           A JSON object of string-valued properties. If present, the string form of this JSON object is put into a header with the name "ApplicationInformation" of the migrated call.
+      migrationHeaders:
+        $ref: "#/definitions/Headers"
   AcceptOptions:
     type: object
     properties:
@@ -2810,7 +2875,7 @@ definitions:
 
   CallEvent:
     description: >
-      A call event contains the corresponding call ID, the type of the event (one of "OFFERED","OUTGOING", "PROCEEDING", "ALERTING", "CONNECTED", "UPDATED", "TRANSFER_FAILED", "MIGRATED", "MIGRATION_FAILED" and "DISCONNECTED"), the call parties, the call headers and the timestamp.
+      A call event contains the corresponding call ID, the type of the event (one of "OFFERED","OUTGOING", "PROCEEDING", "FORWARDED", "ALERTING", "CONNECTED", "UPDATED", "TRANSFER_FAILED", "MIGRATED", "MIGRATION_FAILED" and "DISCONNECTED"), the call parties, the call headers and the timestamp.
       In particular, the supported headers are:
       "Info": [a user data string (UUI)]
       "Local": [same as local call party]
@@ -2830,14 +2895,14 @@ definitions:
       - timestamp
     properties:
       callId:
-        type: integer
-        format: int64
+        $ref: "#/definitions/CallId"
       type:
         type: string
         enum:
           - OFFERED
           - OUTGOING
           - PROCEEDING
+          - FORWARDED
           - ALERTING
           - CONNECTED
           - UPDATED
@@ -2861,8 +2926,7 @@ definitions:
       - timestamp
     properties:
       callId:
-        type: integer
-        format: int64
+        $ref: "#/definitions/CallId"
       type:
         type: string
         enum:
@@ -2881,8 +2945,7 @@ definitions:
       - timestamp
     properties:
       callId:
-        type: integer
-        format: int64
+        $ref: "#/definitions/CallId"
       type:
         type: string
         enum:
@@ -2910,8 +2973,7 @@ definitions:
       - timestamp
     properties:
       callId:
-        type: integer
-        format: int64
+        $ref: "#/definitions/CallId"
       type:
         type: string
         enum:
@@ -2930,19 +2992,16 @@ definitions:
       - providerId
     properties:
       id:
-        type: integer
-        format: int64
+        $ref: "#/definitions/MixerId"
       providerId:
-        type: integer
-        format: int64
+        $ref: "#/definitions/ProviderId"
   NewMixer:
     type: object
     required:
       - providerId
     properties:
       providerId:
-        type: integer
-        format: int64
+        $ref: "#/definitions/ProviderId"
   MixerEvent:
     type: object
     required:
@@ -2951,8 +3010,7 @@ definitions:
      - timestamp
     properties:
       mixerId:
-        type: integer
-        format: int64
+        $ref: "#/definitions/MixerId"
       type:
         type: string
         enum:
@@ -2971,14 +3029,11 @@ definitions:
       - mode
     properties:
       id:
-        type: integer
-        format: int64
+        $ref: "#/definitions/MemberId"
       mixerId:
-        type: integer
-        format: int64
+        $ref: "#/definitions/MixerId"
       callId:
-        type: integer
-        format: int64
+        $ref: "#/definitions/CallId"
       mode:
         $ref: "#/definitions/MemberMode"
   NewMember:
@@ -2989,11 +3044,9 @@ definitions:
       - mode
     properties:
       mixerId:
-        type: integer
-        format: int64
+        $ref: "#/definitions/MixerId"
       callId:
-        type: integer
-        format: int64
+        $ref: "#/definitions/CallId"
       mode:
         $ref: "#/definitions/MemberMode"
   MemberMode:
@@ -3024,8 +3077,7 @@ definitions:
       - timestamp
     properties:
       memberId:
-        type: integer
-        format: int64
+        $ref: "#/definitions/MemberId"
       type:
         type: string
         enum:
@@ -3048,19 +3100,16 @@ definitions:
       - providerId
     properties:
       id:
-        type: integer
-        format: int64
+        $ref: "#/definitions/VideoMixerId"
       providerId:
-        type: integer
-        format: int64
+        $ref: "#/definitions/ProviderId"
   NewVideoMixer:
     type: object
     required:
       - providerId
     properties:
       providerId:
-        type: integer
-        format: int64
+        $ref: "#/definitions/ProviderId"
   VideoMixerEvent:
     type: object
     required:
@@ -3069,8 +3118,7 @@ definitions:
       - timestamp
     properties:
       videoMixerId:
-        type: integer
-        format: int64
+        $ref: "#/definitions/VideoMixerId"
       type:
         type: string
         enum:
@@ -3089,14 +3137,11 @@ definitions:
       - videoMode
     properties:
       id:
-        type: integer
-        format: int64
+        $ref: "#/definitions/VideoMemberId"
       videoMixerId:
-        type: integer
-        format: int64
+        $ref: "#/definitions/VideoMixerId"
       callId:
-        type: integer
-        format: int64
+        $ref: "#/definitions/CallId"
       videoMode:
         $ref: "#/definitions/VideoMemberVideoMode"
   NewVideoMember:
@@ -3107,11 +3152,9 @@ definitions:
       - videoMode
     properties:
       videoMixerId:
-        type: integer
-        format: int64
+        $ref: "#/definitions/VideoMixerId"
       callId:
-        type: integer
-        format: int64
+        $ref: "#/definitions/CallId"
       videoMode:
         $ref: "#/definitions/VideoMemberVideoMode"
   VideoMemberVideoMode:
@@ -3136,11 +3179,9 @@ definitions:
       - callOrMixerId
     properties:
       id:
-        type: integer
-        format: int64
+        $ref: "#/definitions/ControlId"
       callOrMixerId:
-        type: integer
-        format: int64
+        $ref: "#/definitions/CallOrMixerId"
   NewControl:
     type: object
     required:
@@ -3149,8 +3190,7 @@ definitions:
       - options
     properties:
       callOrMixerId:
-        type: integer
-        format: int64
+        $ref: "#/definitions/CallOrMixerId"
       kind:
         type: string
         enum:
@@ -3281,8 +3321,7 @@ definitions:
       - timestamp
     properties:
       controlId:
-        type: integer
-        format: int64
+        $ref: "#/definitions/ControlId"
       type:
         type: string
         enum:
@@ -3326,11 +3365,9 @@ definitions:
       - vendor
     properties:
       id:
-        type: integer
-        format: int64
+        $ref: "#/definitions/SynthesizerId"
       callOrMixerId:
-        type: integer
-        format: int64
+        $ref: "#/definitions/CallOrMixerId"
       language:
         type: string
       vendor:
@@ -3343,8 +3380,7 @@ definitions:
       - vendor
     properties:
       callOrMixerId:
-        type: integer
-        format: int64
+        $ref: "#/definitions/CallOrMixerId"
       language:
         type: string
       vendor:
@@ -3359,8 +3395,7 @@ definitions:
       - vendorVoices
     properties:
       callOrMixerId:
-        type: integer
-        format: int64
+        $ref: "#/definitions/CallOrMixerId"
       language:
         type: string
       vendorVoices:
@@ -3368,6 +3403,16 @@ definitions:
         minItems: 1
         items:
           $ref: '#/definitions/SynthesizerVendorVoice'
+  SynthesizerLanguages:
+    type: object
+    additionalProperties:
+      type: array
+      items:
+        $ref: "#/definitions/SynthesizerVendor"
+    description: >
+      Property names in this object are BCP47 language tags. The value
+      of a property is an array of vendors providing synthesis for
+      the language identified of the language tag (the property name).
   SynthesizerVendorVoice:
     type: object
     required:
@@ -3400,8 +3445,7 @@ definitions:
       - timestamp
     properties:
       synthesizerId:
-        type: integer
-        format: int64
+        $ref: "#/definitions/SynthesizerId"
       type:
         type: string
         enum:
@@ -3435,11 +3479,9 @@ definitions:
       - vendor
     properties:
       id:
-        type: integer
-        format: int64
+        $ref: "#/definitions/RecognizerId"
       callOrMixerId:
-        type: integer
-        format: int64
+        $ref: "#/definitions/CallOrMixerId"
       language:
         type: string
       vendor:
@@ -3451,15 +3493,17 @@ definitions:
       - language
     properties:
       callOrMixerId:
-        type: integer
-        format: int64
+        $ref: "#/definitions/CallOrMixerId"
       language:
         type: string
       vendor:
-        type: string
-        enum:
-          - NUANCE
-          - SYMPALOG
+        $ref: "#/definitions/RecognizerVendor"
+  RecognizerVendor:
+    type: string
+    enum:
+      - NUANCE
+      - SYMPALOG
+
   GatherOptions:
     type: object
     required:
@@ -3535,8 +3579,7 @@ definitions:
         $ref: "#/definitions/Grammar"
         description: Use this field if type is REPEAT or ONE_OF.
       grammarId:
-        type: integer
-        format: int64
+        $ref: "#/definitions/GrammarId"
         description: Use this field if type is REFERENCE.
       xml:
         type: string
@@ -3553,8 +3596,7 @@ definitions:
       - grammar
     properties:
       providerId:
-        type: integer
-        format: int64
+        $ref: "#/definitions/ProviderId"
       grammar:
         $ref: "#/definitions/Grammar"
   GrammarDefinition:
@@ -3565,11 +3607,9 @@ definitions:
       - grammar
     properties:
       id:
-        type: integer
-        format: int64
+        $ref: "#/definitions/GrammarId"
       providerId:
-        type: integer
-        format: int64
+        $ref: "#/definitions/ProviderId"
       grammar:
         $ref: "#/definitions/Grammar"
   RecognizerEvent:
@@ -3581,8 +3621,7 @@ definitions:
       - timestamp
     properties:
       recognizerId:
-        type: integer
-        format: int64
+        $ref: "#/definitions/RecognizerId"
       type:
         type: string
         enum:
@@ -3609,6 +3648,16 @@ definitions:
         format: int32
       text:
        type: string
+  RecognizerLanguages:
+    type: object
+    additionalProperties:
+      type: array
+      items:
+        $ref: "#/definitions/RecognizerVendor"
+    description: >
+      Property names in this object are BCP47 language tags. The value
+      of a property is an array of vendors providing transcription for
+      the language identified of the language tag (the property name).
 
 # Transcriber definitions
   TranscriberVendor:
@@ -3619,6 +3668,7 @@ definitions:
       - IBM
       - SPEECHMATICS
       - MICROSOFT
+      - NUANCE
   Transcriber:
     type: object
     required:
@@ -3629,11 +3679,9 @@ definitions:
       - eventEndpoint
     properties:
       id:
-        type: integer
-        format: int64
+        $ref: "#/definitions/TranscriberId"
       callOrMixerId:
-        type: integer
-        format: int64
+        $ref: "#/definitions/CallOrMixerId"
       language:
         type: string
       vendor:
@@ -3647,8 +3695,7 @@ definitions:
       - language
     properties:
       callOrMixerId:
-        type: integer
-        format: int64
+        $ref: "#/definitions/CallOrMixerId"
       language:
         type: string
       vendor:
@@ -3660,8 +3707,7 @@ definitions:
       - language
     properties:
       callOrMixerId:
-        type: integer
-        format: int64
+        $ref: "#/definitions/CallOrMixerId"
       language:
         type: string
       vendors:
@@ -3723,8 +3769,7 @@ definitions:
       - timestamp
     properties:
       transcriberId:
-        type: integer
-        format: int64
+        $ref: "#/definitions/TranscriberId"
       type:
         type: string
         enum:
@@ -3773,6 +3818,16 @@ definitions:
       latency:
         type: integer
         format: int64
+  TranscriberLanguages:
+    type: object
+    additionalProperties:
+      type: array
+      items:
+        $ref: "#/definitions/TranscriberVendor"
+    description: >
+      Property names in this object are BCP47 language tags. The value
+      of a property is an array of vendors providing transcription for
+      the language identified of the language tag (the property name).
 
 # HttpStreamer definitions
   NewHttpStreamer:
@@ -3781,8 +3836,7 @@ definitions:
       - callOrMixerId
     properties:
       callOrMixerId:
-        type: integer
-        format: int64
+        $ref: "#/definitions/CallOrMixerId"
   HttpStreamer:
     type: object
     required:
@@ -3790,11 +3844,9 @@ definitions:
       - callOrMixerId
     properties:
       id:
-        type: integer
-        format: int64
+        $ref: "#/definitions/HttpStreamerId"
       callOrMixerId:
-        type: integer
-        format: int64
+        $ref: "#/definitions/CallOrMixerId"
   HttpStreamerMethod:
     type: string
     enum:
@@ -3822,8 +3874,7 @@ definitions:
       - timestamp
     properties:
       httpStreamerId:
-        type: integer
-        format: int64
+        $ref: "#/definitions/HttpStreamerId"
       type:
         type: string
         enum:
@@ -3864,19 +3915,16 @@ definitions:
       - callOrMixerId
     properties:
       id:
-        type: integer
-        format: int64
+        $ref: "#/definitions/EndpointId"
       callOrMixerId:
-        type: integer
-        format: int64
+        $ref: "#/definitions/CallOrMixerId"
   NewEndpoint:
     type: object
     required:
       - callOrMixerId
     properties:
       callOrMixerId:
-        type: integer
-        format: int64
+        $ref: "#/definitions/CallOrMixerId"
 
 # Sink definitions
   Sink:
@@ -3889,11 +3937,9 @@ definitions:
       - rtpPayloads
     properties:
       id:
-        type: integer
-        format: int64
+        $ref: "#/definitions/SinkId"
       endpointId:
-        type: integer
-        format: int64
+        $ref: "#/definitions/EndpointId"
       host:
         type: string
       port:
@@ -3909,8 +3955,7 @@ definitions:
       - endpointId
     properties:
       endpointId:
-        type: integer
-        format: int64
+        $ref: "#/definitions/EndpointId"
   NewExternalSink:
     type: object
     required:
@@ -3956,14 +4001,11 @@ definitions:
       - sinkId
     properties:
       id:
-        type: integer
-        format: int64
+        $ref: "#/definitions/ConnectionId"
       endpointId:
-        type: integer
-        format: int64
+        $ref: "#/definitions/EndpointId"
       sinkId:
-        type: integer
-        format: int64
+        $ref: "#/definitions/SinkId"
   NewConnection:
     type: object
     required:
@@ -3971,11 +4013,9 @@ definitions:
       - sinkId
     properties:
       endpointId:
-        type: integer
-        format: int64
+        $ref: "#/definitions/EndpointId"
       sinkId:
-        type: integer
-        format: int64
+        $ref: "#/definitions/SinkId"
 
 # Generic Headers
   Headers:
@@ -4019,3 +4059,58 @@ definitions:
         format: int32
       message:
         type: string
+
+  ProviderId:
+    type: integer
+    format: int64
+  NumberId:
+    type: integer
+    format: int64
+  MixerId:
+    type: integer
+    format: int64
+  CallId:
+    type: integer
+    format: int64
+  CallOrMixerId:
+    type: integer
+    format: int64
+  MemberId:
+    type: integer
+    format: int64
+  TranscriberId:
+    type: integer
+    format: int64
+  SynthesizerId:
+    type: integer
+    format: int64
+  RecognizerId:
+    type: integer
+    format: int64
+  ControlId:
+    type: integer
+    format: int64
+  ConnectionId:
+    type: integer
+    format: int64
+  EndpointId:
+    type: integer
+    format: int64
+  SinkId:
+    type: integer
+    format: int64
+  SipAuthCredentialsId:
+    type: integer
+    format: int64
+  VideoMixerId:
+    type: integer
+    format: int64
+  VideoMemberId:
+    type: integer
+    format: int64
+  GrammarId:
+    type: integer
+    format: int64
+  HttpStreamerId:
+    type: integer
+    format: int64

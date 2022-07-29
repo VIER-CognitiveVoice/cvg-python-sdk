@@ -89,6 +89,7 @@ components:
         - CRITICAL
       description: Status of an individual health event.
     ProjectHealth:
+      type: object
       required:
         - status
         - callCount
@@ -152,7 +153,7 @@ components:
         - language
       properties:
         vendor:
-          $ref: 'shared/speech_service.yml#/components/schemas/Vendor'
+          $ref: 'shared/speech_service.yml#/components/schemas/SpeechServiceVendor'
         profileToken:
           $ref: 'shared/tokens.yml#/components/schemas/ProfileToken'
         language:
@@ -173,7 +174,7 @@ components:
             - latencies
           properties:
             vendor:
-              $ref: 'shared/speech_service.yml#/components/schemas/Vendor'
+              $ref: 'shared/speech_service.yml#/components/schemas/SpeechServiceVendor'
             latencies:
               $ref: '#/components/schemas/AggregatedLatencies'
       description: Speech was transcribed with the given STT vendor.
@@ -186,7 +187,7 @@ components:
             - latencies
           properties:
             vendor:
-              $ref: 'shared/speech_service.yml#/components/schemas/Vendor'
+              $ref: 'shared/speech_service.yml#/components/schemas/SpeechServiceVendor'
             latencies:
               $ref: '#/components/schemas/AggregatedLatencies'
       description: Text was synthesized with the given TTS vendor.

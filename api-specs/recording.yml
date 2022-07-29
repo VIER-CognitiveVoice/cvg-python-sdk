@@ -188,6 +188,11 @@ components:
           $ref: 'shared/speaker.yml#/components/schemas/Speaker'
       discriminator:
         propertyName: type
+        mapping:
+          Voice: '#/components/schemas/Voice'
+          Dtmf: '#/components/schemas/Dtmf'
+          Text: '#/components/schemas/Text'
+          Audio: '#/components/schemas/Audio'
     Voice:
       allOf:
         - $ref: '#/components/schemas/TranscriptEntry'

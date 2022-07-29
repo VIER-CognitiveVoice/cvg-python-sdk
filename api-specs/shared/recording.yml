@@ -10,9 +10,9 @@ components:
   schemas:
     DialogPhase:
       type: string
-      default: &botDialog BOT
+      default: BOT
       enum:
-        - *botDialog
+        - BOT
         - ASSIST
     RecordingId:
       type: string

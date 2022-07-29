@@ -13,9 +13,9 @@ components:
       format: dialog-id
       example: 09e59647-5c77-4c02-a1c5-7fb2b47060f1
       description: The id of a dialog.
-    CallId:
+    ExternalCallId:
       type: string
-      format: call-id
+      format: external-call-id
       minLength: 1
       maxLength: 50
       example: someRandomId

@@ -46,13 +46,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GetResellersResponse'
-        '500':
-          description: Server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GetResellersResponse'
+                type: array
+                items:
+                  $ref: '#/components/schemas/Reseller'
     post:
       tags:
         - resellers
@@ -64,9 +60,9 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateResellerRequest'
+              $ref: '#/components/schemas/ResellerTemplate'
       responses:
-        '201':
+        '200':
           description: Reseller created
           content:
             application/json:
@@ -74,8 +70,6 @@ paths:
                 $ref: '#/components/schemas/CreateResellerResponse'
         '400':
           description: Bad request
-        '500':
-          description: Server error
 
   /resellers/{resellerToken}:
     get:
@@ -96,20 +90,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GetResellerResponse'
+                $ref: '#/components/schemas/Reseller'
         '404':
           description: Not Found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GetResellerResponse'
-        '500':
-          description: Server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GetResellerResponse'
-    post:
+    put:
       tags:
         - resellers
       description: Update a reseller.
@@ -127,26 +111,10 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateResellerRequest'
+              $ref: '#/components/schemas/ResellerTemplate'
       responses:
-        '200':
-          description: A reseller
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CreateResellerResponse'
-        '404':
-          description: Not Found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CreateResellerResponse'
-        '500':
-          description: Server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CreateResellerResponse'
+        '204':
+          description: Resller successfully updated.
 
   /customers/{resellerToken}:
     post:
@@ -173,7 +141,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CreateCustomerResponse'
+                $ref: 'shared/tokens.yml#/components/schemas/CustomerToken'
         '400':
           description: Bad request
         '500':
@@ -202,7 +170,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GetCustomerResponse'
+                $ref: '#/components/schemas/Customer'
         '404':
           description: Not Found
         '500':
@@ -231,24 +199,12 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateCustomerRequest'
       responses:
-        '200':
+        '204':
           description: Customer updated
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CreateCustomerResponse'
         '400':
           description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CreateCustomerResponse'
         '500':
           description: Server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CreateCustomerResponse'
     delete:
       tags:
         - customers
@@ -266,24 +222,12 @@ paths:
             $ref: 'shared/tokens.yml#/components/schemas/CustomerToken'
           required: true
       responses:
-        '200':
+        '204':
           description: Customer marked for deletion
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CreateCustomerResponse'
         '400':
           description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CreateCustomerResponse'
         '500':
           description: Server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CreateCustomerResponse'
   /speechserviceprofiles/{resellerToken}:
     get:
       tags:
@@ -316,12 +260,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/GetSpeechServiceProfiles'
 
-  /speechserviceprofiles/{resellerToken}/{customerToken}:
+  /speechserviceprofiles/{resellerToken}/{accountToken}:
     get:
       tags:
         - speechServiceProfiles
-      description: Get a list of TTS and STT profiles available for the current user.
-      operationId: getSpeechServiceProfilesForProject
+      description: Get a list of TTS and STT profiles available for the current user and the given account.
+      operationId: getSpeechServiceProfilesForAccount
       parameters:
         - in: path
           name: resellerToken
@@ -329,11 +273,10 @@ paths:
             $ref: 'shared/tokens.yml#/components/schemas/ResellerToken'
           required: true
         - in: path
-          name: customerToken
+          name: accountToken
           schema:
-            $ref: 'shared/tokens.yml#/components/schemas/CustomerToken'
+            $ref: 'shared/tokens.yml#/components/schemas/AccountToken'
           required: true
-          description: The customer token as a UUID - only provide this when querying the profiles for a specific project.
       responses:
         '200':
           description: ok
@@ -782,7 +725,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CreateAccountResponse'
+                $ref: 'shared/tokens.yml#/components/schemas/AccountToken'
         '400':
           description: Bad request
         '500':
@@ -811,7 +754,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GetAccountResponse'
+                $ref: '#/components/schemas/Account'
         '404':
           description: Not Found
         '500':
@@ -840,24 +783,12 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateAccountRequest'
       responses:
-        '200':
+        '204':
           description: Account updated
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CreateAccountResponse'
         '400':
           description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CreateAccountResponse'
         '500':
           description: Server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CreateAccountResponse'
     delete:
       tags:
         - accounts
@@ -876,24 +807,12 @@ paths:
           required: true
           description: The account token as a UUID
       responses:
-        '200':
+        '204':
           description: marked for deletion
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CreateAccountResponse'
         '400':
           description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CreateAccountResponse'
         '500':
           description: Server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CreateAccountResponse'
 
 
   /accountrestore/{resellerToken}/{accountToken}:
@@ -963,19 +882,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CreateProjectResponse'
+                $ref: 'shared/tokens.yml#/components/schemas/ProjectToken'
         '400':
           description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CreateProjectResponse'
         '500':
           description: Server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CreateProjectResponse'
 
   /projectrestore/{resellerToken}/{projectToken}:
     post:
@@ -1037,7 +948,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GetProjectResponse'
+                $ref: '#/components/schemas/Project'
         '404':
           description: Not Found
         '500':
@@ -1066,24 +977,13 @@ paths:
             schema:
               $ref: '#/components/schemas/ProjectTemplate'
       responses:
-        '200':
+        '204':
           description: Project updated
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CreateProjectResponse'
         '400':
           description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CreateProjectResponse'
         '500':
           description: Server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CreateProjectResponse'
+
     delete:
       tags:
         - projects
@@ -1101,24 +1001,12 @@ paths:
             $ref: 'shared/tokens.yml#/components/schemas/ProjectToken'
           required: true
       responses:
-        '200':
+        '204':
           description: project marked for deletion
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CreateProjectResponse'
         '400':
           description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CreateProjectResponse'
         '500':
           description: Server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CreateProjectResponse'
 
   /project/{resellerToken}/{projectToken}/move:
     post:
@@ -1276,7 +1164,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/DialogHistoryEstimationResponse'
 
-  /projectdialogshistory/{resellerToken}/{projectToken}/projectdialoghistory-{start}-{end}.{type}:
+  /projectdialogshistory/{resellerToken}/export/{projectToken}:
     get:
       tags:
         - projects
@@ -1293,17 +1181,17 @@ paths:
           schema:
             $ref: 'shared/tokens.yml#/components/schemas/ProjectToken'
           required: true
-        - in: path
+        - in: query
           name: start
           schema:
             $ref: 'shared/time.yml#/components/schemas/Timestamp'
           required: true
-        - in: path
+        - in: query
           name: end
           schema:
             $ref: 'shared/time.yml#/components/schemas/Timestamp'
           required: true
-        - in: path
+        - in: query
           name: type
           schema:
             $ref: '#/components/schemas/SupportedExportFileTypes'
@@ -1345,15 +1233,15 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GetProjectHierarchy'
+                $ref: '#/components/schemas/ProjectHierarchy'
         '500':
           description: Server error
 
-  /projectsbilling/project/{resellerToken}/{projectToken}:
+  /projectsbilling/{resellerToken}:
     get:
       tags:
         - projectbilling
-      description: Get projectbilling.
+      description: Get projectbilling for reseller.
       operationId: getProjectBilling
       parameters:
         - in: path
@@ -1361,36 +1249,39 @@ paths:
           schema:
             $ref: 'shared/tokens.yml#/components/schemas/ResellerToken'
           required: true
-        - in: path
-          name: projectToken
-          schema:
-            $ref: 'shared/tokens.yml#/components/schemas/ProjectToken'
-          required: true
         - in: query
           name: start
-          required: true
           schema:
             $ref: 'shared/time.yml#/components/schemas/Timestamp'
+          required: true
         - in: query
           name: end
-          required: true
           schema:
             $ref: 'shared/time.yml#/components/schemas/Timestamp'
+          required: true
+        - in: query
+          name: project
+          style: form
+          schema:
+            type: array
+            items:
+              $ref: 'shared/tokens.yml#/components/schemas/ProjectToken'
+          required: false
       responses:
         '200':
           description: Project Billing
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GetProjectBilling'
-        '500':
-          description: Server error
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProjectBillingItem'
 
-  /projectsbilling/project/{resellerToken}/{projectToken}/projectbilling-{start}-{end}.{type}:
+  /projectsbilling/{resellerToken}/export:
     get:
       tags:
         - projectbilling
-      description: Get project billing as file
+      description: Get project billing as csv for reseller
       operationId: getProjectBillingAsFile
       parameters:
         - in: path
@@ -1398,70 +1289,29 @@ paths:
           schema:
             $ref: 'shared/tokens.yml#/components/schemas/ResellerToken'
           required: true
-        - in: path
-          name: projectToken
-          schema:
-            $ref: 'shared/tokens.yml#/components/schemas/ProjectToken'
-          required: true
-        - in: path
-          name: start
-          required: true
-          schema:
-            $ref: 'shared/time.yml#/components/schemas/Timestamp'
-        - in: path
-          name: end
-          required: true
-          schema:
-            $ref: 'shared/time.yml#/components/schemas/Timestamp'
-        - in: path
-          name: type
-          schema:
-            $ref: '#/components/schemas/SupportedExportFileTypes'
-          required: true
-      responses:
-        '200':
-          description: Billing of a project
-          content:
-            application/csv:
-              schema:
-                type: string
-                format: binary
-            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
-              schema:
-                type: string
-                format: binary
-        '404':
-          description: Not found
-        '500':
-          description: Server error
-
-  /projectsbilling/account/{resellerToken}/projectbilling-{start}-{end}.{type}:
-    get:
-      tags:
-        - projectbilling
-      description: Get project billing as file for account
-      operationId: getProjectBillingForAccountAsFile
-      parameters:
-        - in: path
-          name: resellerToken
-          schema:
-            $ref: 'shared/tokens.yml#/components/schemas/ResellerToken'
-          required: true
-        - in: path
+        - in: query
           name: start
           schema:
             $ref: 'shared/time.yml#/components/schemas/Timestamp'
           required: true
-        - in: path
+        - in: query
           name: end
           schema:
             $ref: 'shared/time.yml#/components/schemas/Timestamp'
           required: true
-        - in: path
+        - in: query
           name: type
           schema:
             $ref: '#/components/schemas/SupportedExportFileTypes'
           required: true
+        - in: query
+          name: project
+          style: form
+          schema:
+            type: array
+            items:
+              $ref: 'shared/tokens.yml#/components/schemas/ProjectToken'
+          required: false
       responses:
         '200':
           description: Billing of a project
@@ -1478,196 +1328,6 @@ paths:
           description: Not found
         '415':
           description: Unsupported file extension
-        '500':
-          description: Server error
-
-  /projectsbilling/account/{resellerToken}:
-    get:
-      tags:
-        - projectbilling
-      description: Get projectbilling for account.
-      operationId: getProjectBillingForAccount
-      parameters:
-        - in: path
-          name: resellerToken
-          schema:
-            $ref: 'shared/tokens.yml#/components/schemas/ResellerToken'
-          required: true
-        - in: query
-          name: start
-          schema:
-            $ref: 'shared/time.yml#/components/schemas/Timestamp'
-          required: true
-        - in: query
-          name: end
-          schema:
-            $ref: 'shared/time.yml#/components/schemas/Timestamp'
-          required: true
-      responses:
-        '200':
-          description: Project Billing
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GetProjectBilling'
-        '500':
-          description: Server error
-
-  /projectsbilling/customer/{resellerToken}:
-    get:
-      tags:
-        - projectbilling
-      description: Get projectbilling for customer.
-      operationId: getProjectBillingForCustomer
-      parameters:
-        - in: path
-          name: resellerToken
-          schema:
-            $ref: 'shared/tokens.yml#/components/schemas/ResellerToken'
-          required: true
-        - in: query
-          name: start
-          schema:
-            $ref: 'shared/time.yml#/components/schemas/Timestamp'
-          required: true
-        - in: query
-          name: end
-          schema:
-            $ref: 'shared/time.yml#/components/schemas/Timestamp'
-          required: true
-      responses:
-        '200':
-          description: Project Billing
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GetProjectBilling'
-        '500':
-          description: Server error
-
-  /projectsbilling/customer/{resellerToken}/projectbilling-{start}-{end}.{type}:
-    get:
-      tags:
-        - projectbilling
-      description: Get project billing as csv for customer
-      operationId: getProjectBillingForCustomerAsFile
-      parameters:
-        - in: path
-          name: resellerToken
-          schema:
-            $ref: 'shared/tokens.yml#/components/schemas/ResellerToken'
-          required: true
-        - in: path
-          name: start
-          schema:
-            $ref: 'shared/time.yml#/components/schemas/Timestamp'
-          required: true
-        - in: path
-          name: end
-          schema:
-            $ref: 'shared/time.yml#/components/schemas/Timestamp'
-          required: true
-        - in: path
-          name: type
-          schema:
-            $ref: '#/components/schemas/SupportedExportFileTypes'
-          required: true
-      responses:
-        '200':
-          description: Billing of a project
-          content:
-            application/csv:
-              schema:
-                type: string
-                format: binary
-            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
-              schema:
-                type: string
-                format: binary
-        '404':
-          description: Not found
-        '415':
-          description: Unsupported file extension
-        '500':
-          description: Server error
-
-  /projectsbilling/reseller/{resellerToken}:
-    get:
-      tags:
-        - projectbilling
-      description: Get projectbilling for reseller.
-      operationId: getProjectBillingForReseller
-      parameters:
-        - in: path
-          name: resellerToken
-          schema:
-            $ref: 'shared/tokens.yml#/components/schemas/ResellerToken'
-          required: true
-        - in: query
-          name: start
-          schema:
-            $ref: 'shared/time.yml#/components/schemas/Timestamp'
-          required: true
-        - in: query
-          name: end
-          schema:
-            $ref: 'shared/time.yml#/components/schemas/Timestamp'
-          required: true
-      responses:
-        '200':
-          description: Project Billing
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GetProjectBilling'
-        '500':
-          description: Server error
-
-  /projectsbilling/reseller/{resellerToken}/projectbilling-{start}-{end}.{type}:
-    get:
-      tags:
-        - projectbilling
-      description: Get project billing as csv for reseller
-      operationId: getProjectBillingForResellerAsFile
-      parameters:
-        - in: path
-          name: resellerToken
-          schema:
-            $ref: 'shared/tokens.yml#/components/schemas/ResellerToken'
-          required: true
-        - in: path
-          name: start
-          schema:
-            $ref: 'shared/time.yml#/components/schemas/Timestamp'
-          required: true
-        - in: path
-          name: end
-          schema:
-            $ref: 'shared/time.yml#/components/schemas/Timestamp'
-          required: true
-        - in: path
-          name: type
-          schema:
-            $ref: '#/components/schemas/SupportedExportFileTypes'
-          required: true
-      responses:
-        '200':
-          description: Billing of a project
-          content:
-            application/csv:
-              schema:
-                type: string
-                format: binary
-            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
-              schema:
-                type: string
-                format: binary
-        '404':
-          description: Not found
-        '415':
-          description: Unsupported file extension
-        '500':
-          description: Server error
 
   /platform-numbers/{resellerToken}/{customerToken}:
     get:
@@ -2174,30 +1834,6 @@ paths:
           description: User has been successfully removed.
         '404':
           description: User not found.
-  /users/{resellerToken}/customer/{customerToken}/memberships:
-    parameters:
-      - in: path
-        name: resellerToken
-        schema:
-          $ref: 'shared/tokens.yml#/components/schemas/ResellerToken'
-        required: true
-      - in: path
-        name: customerToken
-        schema:
-          $ref: 'shared/tokens.yml#/components/schemas/CustomerToken'
-        required: true
-    get:
-      tags:
-        - users
-      description: Gets all memberships of all users involved in this organization.
-      operationId: getCustomerMemberships
-      responses:
-        '200':
-          description: The list of users.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OrganizationMemberships'
   /users/{resellerToken}/account/{accountToken}:
     parameters:
       - in: path
@@ -2253,30 +1889,6 @@ paths:
           description: User has been successfully removed.
         '404':
           description: User not found.
-  /users/{resellerToken}/account/{accountToken}/memberships:
-    parameters:
-      - in: path
-        name: resellerToken
-        schema:
-          $ref: 'shared/tokens.yml#/components/schemas/ResellerToken'
-        required: true
-      - in: path
-        name: accountToken
-        schema:
-          $ref: 'shared/tokens.yml#/components/schemas/AccountToken'
-        required: true
-    get:
-      tags:
-        - users
-      description: Gets all memberships of all users involved in this organization.
-      operationId: getAccountMemberships
-      responses:
-        '200':
-          description: The list of users.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OrganizationMemberships'
   /users/{resellerToken}/project/{projectToken}:
     parameters:
       - in: path
@@ -2332,30 +1944,6 @@ paths:
           description: User has been successfully removed.
         '404':
           description: User not found.
-  /users/{resellerToken}/memberships/user:
-    parameters:
-      - in: path
-        name: resellerToken
-        schema:
-          $ref: 'shared/tokens.yml#/components/schemas/ResellerToken'
-        required: true
-      - in: query
-        name: email
-        schema:
-          type: string
-        required: true
-    get:
-      tags:
-        - users
-      description: Gets all memberships of the given user
-      operationId: getUserMemberships
-      responses:
-        '200':
-          description: The list of users.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Memberships'
 
 components:
   securitySchemes:
@@ -2363,8 +1951,8 @@ components:
       type: oauth2
       flows:
         authorizationCode:
-          authorizationUrl: '/keycloak/auth/realms/VIER/protocol/openid-connect/auth'
-          tokenUrl: '/keycloak/auth/realms/VIER/protocol/openid-connect/token'
+          authorizationUrl: '/keycloak/realms/VIER/protocol/openid-connect/auth'
+          tokenUrl: '/keycloak/realms/VIER/protocol/openid-connect/token'
           scopes:
             openid: Provides an id_token
             profile: Provides access to general user information
@@ -2544,7 +2132,6 @@ components:
           $ref: '#/components/schemas/HexColor'
     HexColor:
       type: string
-      format: hex-color
       nullable: false
       pattern: '^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$'
     ContentHash:
@@ -2555,8 +2142,12 @@ components:
       type: array
       uniqueItems: true
       items:
-        type: string
-        format: unchecked-phone-number
+        $ref: '#/components/schemas/UndeterminedPhoneNumber'
+    UndeterminedPhoneNumber:
+      type: string
+      example: "+49721123456789"
+      description: |-
+        A potential phone number (+E.164 format).
     ItuNumberDetailsResponse:
       type: object
       additionalProperties:
@@ -2634,25 +2225,26 @@ components:
     UserDetails:
       type: object
       required:
-        - roles
-        - userName
+        - emailAddress
         - resellers
         - apiBaseUrl
+        - transcribers
+        - synthesizers
+        - apiBaseUrl
+        - deletionRetentionTimeInDays
+        - languages
+        - defaults
       properties:
-        roles:
-          type: array
-          description: the token of the reseller
-          items:
-            type: string
-        userName:
+        emailAddress:
           type: string
-          description: The username
+          description: The email address
+        superPrivileged:
+          type: boolean
+          description: Whether the user has global access
         resellers:
           type: array
           items:
             $ref: '#/components/schemas/ResellerInformation'
-        customerToken:
-          $ref: 'shared/tokens.yml#/components/schemas/CustomerToken'
         transcribers:
           type: array
           description: All known transcribers
@@ -2669,24 +2261,39 @@ components:
         deletionRetentionTimeInDays:
           type: integer
           format: int32
-          description: The amount of days after project hierarchy elements will be retained before they are deleted
+          description: The amount of days project hierarchy elements will be retained before they are deleted
         languages:
           type: array
           items:
-            type: object
-            required:
-              - code
-              - language
-            properties:
-              code:
-                type: string
-                description: Language code like 'de-DE' or 'en-US'.
-              nativeDisplayName:
-                type: string
-                description: Native name of the language as it should be displayed in the UI.
-              englishDisplayName:
-                type: string
-                description: English name of the language as it should be displayed in the UI.
+            $ref: '#/components/schemas/UserDetailsLanguage'
+        defaults:
+          type: object
+          required:
+            - commonConfiguration
+            - utteranceTimeout
+            - minimumNoiseLevel
+          properties:
+            commonConfiguration:
+              $ref: '#/components/schemas/CommonConfiguration'
+            utteranceTimeout:
+              $ref: 'shared/project.yml#/components/schemas/UtteranceTimeout'
+            minimumNoiseLevel:
+              $ref: 'shared/project.yml#/components/schemas/MinimumNoiseLevel'
+    UserDetailsLanguage:
+      type: object
+      required:
+        - code
+        - language
+      properties:
+        code:
+          type: string
+          description: Language code like 'de-DE' or 'en-US'.
+        nativeDisplayName:
+          type: string
+          description: Native name of the language as it should be displayed in the UI.
+        englishDisplayName:
+          type: string
+          description: English name of the language as it should be displayed in the UI.
 
     GetUserDetailsResponse:
       allOf:
@@ -2748,116 +2355,133 @@ components:
     GetAvailablePlatformNumbersResponse:
       type: array
       items:
-        $ref: 'shared/phone_number.yml#/components/schemas/PlatformNumber'
+        $ref: 'shared/phone_number.yml#/components/schemas/E164Number'
 
     SpeechService:
       type: object
       properties:
         vendor:
-          $ref: 'shared/speech_service.yml#/components/schemas/Vendor'
+          $ref: 'shared/speech_service.yml#/components/schemas/SpeechServiceVendor'
         displayName:
           type: string
           description: Name that the user sees
 
-    GetProjectHierarchy:
-      allOf:
-        - $ref: '#/components/schemas/ErrorResponse'
-        - type: object
-          properties:
-            hierarchyData:
-              type: array
-              items:
-                type: object
-                properties:
-                  customerToken:
-                    $ref: 'shared/tokens.yml#/components/schemas/CustomerToken'
-                  customerName:
-                    $ref: '#/components/schemas/CustomerName'
-                  deletionTimestamp:
-                    $ref: 'shared/time.yml#/components/schemas/Timestamp'
-                  accounts:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        accountToken:
-                          $ref: 'shared/tokens.yml#/components/schemas/AccountToken'
-                        accountName:
-                          $ref: '#/components/schemas/AccountName'
-                        deletionTimestamp:
-                          $ref: 'shared/time.yml#/components/schemas/Timestamp'
-                        projects:
-                          type: array
-                          items:
-                            type: object
-                            required:
-                              - projectToken
-                              - projectName
-                              - externalNumbers
-                              - transcriberLanguage
-                              - synthesizerLanguage
-                              - transcriberVendors
-                              - synthesizerVendors
-                              - inactive
-                              - healthStatus
-                            properties:
-                              projectToken:
-                                $ref: 'shared/tokens.yml#/components/schemas/ProjectToken'
-                              projectName:
-                                $ref: '#/components/schemas/ProjectName'
-                              color:
-                                $ref: '#/components/schemas/ProjectColor'
-                              platformNumber:
-                                $ref: 'shared/phone_number.yml#/components/schemas/PlatformNumber'
-                              externalNumbers:
-                                type: array
-                                items:
-                                  type: string
-                              transcriberLanguage:
-                                $ref: 'shared/language.yml#/components/schemas/Language'
-                              synthesizerLanguage:
-                                $ref: 'shared/language.yml#/components/schemas/Language'
-                              transcriberVendors:
-                                type: array
-                                items:
-                                  $ref: 'shared/speech_service.yml#/components/schemas/Vendor'
-                              synthesizerVendors:
-                                type: array
-                                items:
-                                  $ref: 'shared/speech_service.yml#/components/schemas/Vendor'
-                              deletionTimestamp:
-                                $ref: 'shared/time.yml#/components/schemas/Timestamp'
-                              healthStatus:
-                                $ref: 'shared/project_health.yml#/components/schemas/HealthStatus'
+    Authorization:
+      type: string
+      enum:
+        - SUPER_ADMIN
+        - RESELLER_ADMIN
+        - CUSTOMER_ADMIN
+        - ACCOUNT_ADMIN
+        - PROJECT_ADMIN
+    ProjectHierarchy:
+      type: object
+      required:
+        - resellerToken
+        - resellerName
+        - customers
+      properties:
+        resellerToken:
+          $ref: 'shared/tokens.yml#/components/schemas/ResellerToken'
+        resellerName:
+          $ref: '#/components/schemas/ResellerName'
+        customers:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProjectHierarchyCustomerItem'
+        authorization:
+          $ref: '#/components/schemas/Authorization'
+    ProjectHierarchyCustomerItem:
+      type: object
+      required:
+        - customerToken
+        - customerName
+        - accounts
+      properties:
+        customerToken:
+          $ref: 'shared/tokens.yml#/components/schemas/CustomerToken'
+        customerName:
+          $ref: '#/components/schemas/CustomerName'
+        deletionTimestamp:
+          $ref: 'shared/time.yml#/components/schemas/Timestamp'
+        accounts:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProjectHierarchyAccountItem'
+        authorization:
+          $ref: '#/components/schemas/Authorization'
+    ProjectHierarchyAccountItem:
+      type: object
+      required:
+        - accountToken
+        - accountName
+        - projects
+      properties:
+        accountToken:
+          $ref: 'shared/tokens.yml#/components/schemas/AccountToken'
+        accountName:
+          $ref: '#/components/schemas/AccountName'
+        deletionTimestamp:
+          $ref: 'shared/time.yml#/components/schemas/Timestamp'
+        projects:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProjectHierarchyProjectItem'
+        authorization:
+          $ref: '#/components/schemas/Authorization'
+    ProjectHierarchyProjectItem:
+      type: object
+      required:
+        - projectToken
+        - projectName
+        - botConfigurationType
+        - externalNumbers
+        - transcriberLanguage
+        - synthesizerLanguage
+        - transcriberVendors
+        - synthesizerVendors
+        - inactive
+        - healthStatus
+        - authorization
+      properties:
+        projectToken:
+          $ref: 'shared/tokens.yml#/components/schemas/ProjectToken'
+        projectName:
+          $ref: '#/components/schemas/ProjectName'
+        color:
+          $ref: '#/components/schemas/ProjectColor'
+        botConfigurationType:
+          $ref: '#/components/schemas/BotConfigurationType'
+        platformNumber:
+          $ref: 'shared/phone_number.yml#/components/schemas/E164Number'
+        externalNumbers:
+          type: array
+          items:
+            type: string
+        transcriberLanguage:
+          $ref: 'shared/language.yml#/components/schemas/Language'
+        synthesizerLanguage:
+          $ref: 'shared/language.yml#/components/schemas/Language'
+        transcriberVendors:
+          type: array
+          items:
+            $ref: 'shared/speech_service.yml#/components/schemas/SpeechServiceVendor'
+        synthesizerVendors:
+          type: array
+          items:
+            $ref: 'shared/speech_service.yml#/components/schemas/SpeechServiceVendor'
+        deletionTimestamp:
+          $ref: 'shared/time.yml#/components/schemas/Timestamp'
+        healthStatus:
+          $ref: 'shared/project_health.yml#/components/schemas/HealthStatus'
+        authorization:
+          $ref: '#/components/schemas/Authorization'
 
-    GetProjectBilling:
-      allOf:
-        - $ref: '#/components/schemas/ErrorResponse'
-        - type: object
-          properties:
-            billingData:
-              type: object
-              properties:
-                project:
-                  type: object
-                  additionalProperties:
-                    $ref: '#/components/schemas/GetProjectBillingElement'
-                totalMinutes:
-                  type: integer
-                  format: int32
-                totalGerMobileOutgoingMinutes:
-                  type: integer
-                  format: int32
-                totalGerLandlineOutgoingMinutes:
-                  type: integer
-                  format: int32
-                totalIncomingMinutes:
-                  type: integer
-                  format: int32
-
-    GetProjectBillingElement:
+    ProjectBillingItem:
       type: object
       properties:
+        projectToken:
+          $ref: 'shared/tokens.yml#/components/schemas/ProjectToken'
         totalMinutes:
           type: integer
           format: int32
@@ -2871,36 +2495,18 @@ components:
           type: integer
           format: int32
 
-    UpdateResellerRequest:
+    ResellerTemplate:
       type: object
       required:
         - resellerName
         - commonConfiguration
       properties:
         resellerName:
-          type: string
-          description: the name of the reseller
-        resellerToken:
-          $ref: 'shared/tokens.yml#/components/schemas/ResellerToken'
+          $ref: '#/components/schemas/ResellerName'
         details:
           $ref: '#/components/schemas/ResellerDetails'
         commonConfiguration:
           $ref: '#/components/schemas/CommonConfiguration'
-
-    CreateResellerRequest:
-      allOf:
-        - $ref: '#/components/schemas/UpdateResellerRequest'
-        - type: object
-          required:
-            - resellerName
-            - schema
-          properties:
-            resellerName:
-              $ref: '#/components/schemas/ResellerName'
-            schema:
-              $ref: '#/components/schemas/ResellerSchema'
-            details:
-              $ref: '#/components/schemas/ResellerDetails'
     ResellerDetails:
       type: object
       required:
@@ -2935,11 +2541,20 @@ components:
           type: string
           nullable: false
     Reseller:
-      allOf:
-        - $ref: '#/components/schemas/CreateResellerRequest'
-        - type: object
-          required:
-            - resellerToken
+      type: object
+      required:
+        - resellerToken
+        - resellerName
+        - commonConfiguration
+      properties:
+        resellerToken:
+          $ref: 'shared/tokens.yml#/components/schemas/ResellerToken'
+        resellerName:
+          $ref: '#/components/schemas/ResellerName'
+        details:
+          $ref: '#/components/schemas/ResellerDetails'
+        commonConfiguration:
+          $ref: '#/components/schemas/CommonConfiguration'
     ResellerInformation:
       type: object
       required:
@@ -2976,6 +2591,7 @@ components:
         - maxRecordingRetentionTime
         - anonymizeRemoteNumbers
         - maxDialogRetentionTime
+        - allowOutboundCalls
       properties:
         allowRecordings:
           type: boolean
@@ -2990,14 +2606,23 @@ components:
             third party systems such as bots and integrations.
         maxDialogRetentionTime:
           $ref: 'shared/time.yml#/components/schemas/Duration'
+        allowOutboundCalls:
+          type: boolean
+          description: Whether outbound calls are allowed for children.
 
     SearchResult:
       type: object
+      required:
+        - projectToken
+        - projectName
+        - botConfigurationType
       properties:
         projectToken:
           $ref: 'shared/tokens.yml#/components/schemas/ProjectToken'
         projectName:
           type: string
+        botConfigurationType:
+          $ref: '#/components/schemas/BotConfigurationType'
 
     SearchResults:
       allOf:
@@ -3010,37 +2635,12 @@ components:
                 $ref: '#/components/schemas/SearchResult'
 
     CreateResellerResponse:
-      allOf:
-        - $ref: '#/components/schemas/ErrorResponse'
-        - type: object
-          required:
-            - resellerData
-          properties:
-            resellerData:
-              type: object
-              required:
-                - resellerToken
-              properties:
-                resellerToken:
-                  $ref: 'shared/tokens.yml#/components/schemas/ResellerToken'
-
-    GetResellersResponse:
-      allOf:
-        - $ref: '#/components/schemas/ErrorResponse'
-        - type: object
-          properties:
-            resellerData:
-              type: array
-              items:
-                $ref: '#/components/schemas/Reseller'
-
-    GetResellerResponse:
-      allOf:
-        - $ref: '#/components/schemas/ErrorResponse'
-        - type: object
-          properties:
-            resellerData:
-              $ref: '#/components/schemas/Reseller'
+      type: object
+      required:
+        - resellerToken
+      properties:
+        resellerToken:
+          $ref: 'shared/tokens.yml#/components/schemas/ResellerToken'
 
     CreateCustomerRequest:
       type: object
@@ -3059,29 +2659,6 @@ components:
           description: marking whether the customer is inactive
         commonConfiguration:
           $ref: '#/components/schemas/CommonConfiguration'
-
-    CreateCustomerResponse:
-      allOf:
-        - $ref: '#/components/schemas/ErrorResponse'
-        - type: object
-          required:
-            - customerData
-          properties:
-            customerData:
-              type: object
-              required:
-                - customerToken
-              properties:
-                customerToken:
-                  $ref: 'shared/tokens.yml#/components/schemas/CustomerToken'
-
-    GetCustomerResponse:
-      allOf:
-        - $ref: '#/components/schemas/ErrorResponse'
-        - type: object
-          properties:
-            customerData:
-              $ref: '#/components/schemas/Customer'
 
     Customer:
       allOf:
@@ -3171,15 +2748,15 @@ components:
         - configuration
       properties:
         vendor:
-          $ref: 'shared/speech_service.yml#/components/schemas/Vendor'
+          $ref: 'shared/speech_service.yml#/components/schemas/SpeechServiceVendor'
         name:
           $ref: '#/components/schemas/SpeechServiceProfileName'
         billingMode:
-          $ref: '#/components/schemas/TranscriberProfileBillingMode'
+          $ref: '#/components/schemas/SpeechServiceProfileBillingMode'
         configuration:
           $ref: '#/components/schemas/TranscriberConfiguration'
 
-    TranscriberProfileBillingMode:
+    SpeechServiceProfileBillingMode:
       type: string
       enum:
         - VENDOR_STANDARD
@@ -3241,12 +2818,15 @@ components:
       required:
         - vendor
         - name
+        - billingMode
         - configuration
       properties:
         vendor:
-          $ref: 'shared/speech_service.yml#/components/schemas/Vendor'
+          $ref: 'shared/speech_service.yml#/components/schemas/SpeechServiceVendor'
         name:
           $ref: '#/components/schemas/SpeechServiceProfileName'
+        billingMode:
+          $ref: '#/components/schemas/SpeechServiceProfileBillingMode'
         configuration:
           $ref: '#/components/schemas/SynthesizerConfiguration'
 
@@ -3287,6 +2867,7 @@ components:
           $ref: '#/components/schemas/SpeechServiceCredentials'
 
     SpeechServiceCredentials:
+      type: object
       required:
         - type
       properties:
@@ -3432,14 +3013,6 @@ components:
                 accountToken:
                   $ref: 'shared/tokens.yml#/components/schemas/AccountToken'
 
-    GetAccountResponse:
-      allOf:
-        - $ref: '#/components/schemas/ErrorResponse'
-        - type: object
-          properties:
-            accountData:
-              $ref: '#/components/schemas/Account'
-
     ProjectStat:
       type: object
       properties:
@@ -3494,7 +3067,7 @@ components:
         status:
           $ref: '#/components/schemas/CallStatus'
         remoteNumber:
-          $ref: 'shared/phone_number.yml#/components/schemas/RemoteNumber'
+          $ref: 'shared/phone_number.yml#/components/schemas/CustomerRemoteParty'
         dialogId:
           $ref: 'shared/tokens.yml#/components/schemas/DialogId'
         dialogStarted:
@@ -3508,7 +3081,7 @@ components:
           type: integer
           format: int32
         dialoutTarget:
-          $ref: 'shared/phone_number.yml#/components/schemas/DialoutNumber'
+          $ref: 'shared/phone_number.yml#/components/schemas/OutboundCallDestination'
         dialoutStarted:
           $ref: 'shared/time.yml#/components/schemas/Timestamp'
         dialoutDuration:
@@ -3551,7 +3124,6 @@ components:
         - platformNumbers
         - utteranceTimeout
         - minimumNoiseLevel
-        - allowOutboundCalls
         - callOriginRestriction
         - commonConfiguration
       properties:
@@ -3562,10 +3134,10 @@ components:
         platformNumbers:
           type: array
           items:
-            $ref: 'shared/phone_number.yml#/components/schemas/PlatformNumber'
+            $ref: 'shared/phone_number.yml#/components/schemas/E164Number'
           description: the phone numbers with which you can call the bot
         fallbackNumber:
-          $ref: 'shared/phone_number.yml#/components/schemas/DialoutNumber'
+          $ref: 'shared/phone_number.yml#/components/schemas/OutboundCallDestination'
         fallbackText:
           type: string
           description: the fallbacktext of the project, that gets read to the caller when the bot is not available
@@ -3585,12 +3157,8 @@ components:
           $ref: 'shared/language.yml#/components/schemas/Language'
         synthesizerLanguage:
           $ref: 'shared/language.yml#/components/schemas/Language'
-        botUrl:
-          $ref: 'shared/project.yml#/components/schemas/BotUrl'
-        botToken:
-          $ref: 'shared/project.yml#/components/schemas/BotToken'
         botConfiguration:
-          $ref: 'shared/project.yml#/components/schemas/BotConfiguration'
+          $ref: '#/components/schemas/BotConfiguration'
         inactivityTimeout:
           $ref: 'shared/project.yml#/components/schemas/InactivityTimeout'
         inactive:
@@ -3600,9 +3168,6 @@ components:
           $ref: 'shared/project.yml#/components/schemas/UtteranceTimeout'
         minimumNoiseLevel:
           $ref: 'shared/project.yml#/components/schemas/MinimumNoiseLevel'
-        allowOutboundCalls:
-          type: boolean
-          description: allows the project to do outbound calls
         callOriginRestriction:
           $ref: '#/components/schemas/CallOriginRestriction'
         commonConfiguration:
@@ -3627,6 +3192,172 @@ components:
               items:
                 $ref: '#/components/schemas/ExternalNumberTemplate'
               description: international access numbers attached to this project
+
+    BotConfigurationType:
+      type: string
+      enum:
+        - Boost
+        - Cognigy
+        - DialogflowCx
+        - DialogflowEs
+        - Jovo
+        - Vier
+        - Ubitec
+        - Neohelden
+        - Custom
+        - EchoBot
+
+    BotConfiguration:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          $ref: '#/components/schemas/BotConfigurationType'
+      discriminator:
+        propertyName: type
+        mapping:
+          Boost: '#/components/schemas/BoostConfiguration'
+          Cognigy: '#/components/schemas/CognigyConfiguration'
+          DialogflowCx: '#/components/schemas/DialogflowCxConfiguration'
+          DialogflowEs: '#/components/schemas/DialogflowEsConfiguration'
+          Jovo: '#/components/schemas/JovoConfiguration'
+          Vier: '#/components/schemas/VierConfiguration'
+          Ubitec: '#/components/schemas/UbitecConfiguration'
+          Neohelden: '#/components/schemas/NeoheldenConfiguration'
+          Custom: '#/components/schemas/CustomConfiguration'
+          EchoBot: '#/components/schemas/EchoBotConfiguration'
+
+    BoostConfiguration:
+      allOf:
+        - $ref: '#/components/schemas/BotConfiguration'
+        - type: object
+          required:
+            - url
+            - token
+          properties:
+            url:
+              $ref: 'shared/project.yml#/components/schemas/BotUrl'
+            token:
+              $ref: 'shared/project.yml#/components/schemas/BotToken'
+
+    CognigyConfiguration:
+      allOf:
+        - $ref: '#/components/schemas/BotConfiguration'
+        - type: object
+          required:
+            - endpointUrl
+          properties:
+            endpointUrl:
+              type: string
+              format: uri
+            channel:
+              type: string
+              minLength: 1
+
+    DialogflowCxConfiguration:
+      allOf:
+        - $ref: '#/components/schemas/BotConfiguration'
+        - type: object
+          required:
+            - agent
+            - credentials
+          properties:
+            location:
+              type: string
+              minLength: 1
+            agent:
+              type: string
+              minLength: 1
+            credentials:
+              $ref: 'shared/google.yml#/components/schemas/GoogleServiceAccount'
+
+    DialogflowEsConfiguration:
+      allOf:
+        - $ref: '#/components/schemas/BotConfiguration'
+        - type: object
+          required:
+            - credentials
+          properties:
+            environmentId:
+              type: string
+              minLength: 1
+            userId:
+              type: string
+              minLength: 1
+            credentials:
+              $ref: 'shared/google.yml#/components/schemas/GoogleServiceAccount'
+
+    JovoConfiguration:
+      allOf:
+        - $ref: '#/components/schemas/BotConfiguration'
+        - type: object
+          required:
+            - url
+            - token
+          properties:
+            url:
+              $ref: 'shared/project.yml#/components/schemas/BotUrl'
+            token:
+              $ref: 'shared/project.yml#/components/schemas/BotToken'
+
+    VierConfiguration:
+      allOf:
+        - $ref: '#/components/schemas/BotConfiguration'
+        - type: object
+          required:
+            - url
+            - token
+          properties:
+            url:
+              $ref: 'shared/project.yml#/components/schemas/BotUrl'
+            token:
+              $ref: 'shared/project.yml#/components/schemas/BotToken'
+
+    UbitecConfiguration:
+      allOf:
+        - $ref: '#/components/schemas/BotConfiguration'
+        - type: object
+          required:
+            - url
+            - token
+          properties:
+            url:
+              $ref: 'shared/project.yml#/components/schemas/BotUrl'
+            token:
+              $ref: 'shared/project.yml#/components/schemas/BotToken'
+
+    NeoheldenConfiguration:
+      allOf:
+        - $ref: '#/components/schemas/BotConfiguration'
+        - type: object
+          required:
+            - url
+            - token
+          properties:
+            url:
+              $ref: 'shared/project.yml#/components/schemas/BotUrl'
+            token:
+              $ref: 'shared/project.yml#/components/schemas/BotToken'
+
+    CustomConfiguration:
+      allOf:
+        - $ref: '#/components/schemas/BotConfiguration'
+        - type: object
+          required:
+            - url
+            - token
+          properties:
+            url:
+              $ref: 'shared/project.yml#/components/schemas/BotUrl'
+            token:
+              $ref: 'shared/project.yml#/components/schemas/BotToken'
+            configuration:
+              $ref: 'shared/google.yml#/components/schemas/GoogleServiceAccount'
+
+    EchoBotConfiguration:
+      allOf:
+        - $ref: '#/components/schemas/BotConfiguration'
 
     ProjectColor:
       type: string
@@ -3661,7 +3392,7 @@ components:
         - type
       properties:
         number:
-          $ref: 'shared/phone_number.yml#/components/schemas/ExternalNumber'
+          $ref: 'shared/phone_number.yml#/components/schemas/E164Number'
         type:
           type: string
           enum:
@@ -3713,7 +3444,7 @@ components:
         - vendor
       properties:
         vendor:
-          $ref: 'shared/speech_service.yml#/components/schemas/Vendor'
+          $ref: 'shared/speech_service.yml#/components/schemas/SpeechServiceVendor'
         profileToken:
           $ref: 'shared/tokens.yml#/components/schemas/ProfileToken'
 
@@ -3727,29 +3458,6 @@ components:
           $ref: 'shared/tokens.yml#/components/schemas/CustomerToken'
         accountToken:
           $ref: 'shared/tokens.yml#/components/schemas/AccountToken'
-
-    CreateProjectResponse:
-      allOf:
-        - $ref: '#/components/schemas/ErrorResponse'
-        - type: object
-          required:
-            - projectData
-          properties:
-            projectData:
-              type: object
-              required:
-                - projectToken
-              properties:
-                projectToken:
-                  $ref: 'shared/tokens.yml#/components/schemas/ProjectToken'
-
-    GetProjectResponse:
-      allOf:
-        - $ref: '#/components/schemas/ErrorResponse'
-        - type: object
-          properties:
-            projectData:
-              $ref: '#/components/schemas/Project'
 
     SupportedExportFileTypes:
       type: string
@@ -3789,6 +3497,7 @@ components:
             $ref: '#/components/schemas/PlatformNumberTree'
 
     PlatformNumberTree:
+      type: object
       required:
         - type
       properties:
@@ -3799,6 +3508,9 @@ components:
             - PlatformNumberRange
       discriminator:
         propertyName: type
+        mapping:
+          PlatformNumberBlock: '#/components/schemas/PlatformNumberBlock'
+          PlatformNumberRange: '#/components/schemas/PlatformNumberRange'
 
     PlatformNumberBlock:
       allOf:
@@ -3839,9 +3551,9 @@ components:
             - last
           properties:
             first:
-              $ref: 'shared/phone_number.yml#/components/schemas/PlatformNumber'
+              $ref: 'shared/phone_number.yml#/components/schemas/E164Number'
             last:
-              $ref: 'shared/phone_number.yml#/components/schemas/PlatformNumber'
+              $ref: 'shared/phone_number.yml#/components/schemas/E164Number'
 
     BlockListResponse:
       type: array
@@ -3869,10 +3581,10 @@ components:
           type: string
           description: the optional description string
         firstNumber:
-          $ref: 'shared/phone_number.yml#/components/schemas/PlatformNumber'
+          $ref: 'shared/phone_number.yml#/components/schemas/E164Number'
           description: the starting of the range of the block
         lastNumber:
-          $ref: 'shared/phone_number.yml#/components/schemas/PlatformNumber'
+          $ref: 'shared/phone_number.yml#/components/schemas/E164Number'
           description: the ending of the range of the block
     TokenNamesRequest:
       type: object
@@ -3963,16 +3675,16 @@ components:
     FilterField:
       type: string
       enum:
-        - 'dialogStarted'
-        - 'dialogFinished'
-        - 'callType'
-        - 'remoteNumber'
-        - 'duration'
-        - 'dialoutDuration'
-        - 'transcribedMessages'
-        - 'synthesizedMessages'
-        - 'status'
-        - 'recordingDuration'
+        - dialogStarted
+        - dialogFinished
+        - callType
+        - remoteNumber
+        - duration
+        - dialoutDuration
+        - transcribedMessages
+        - synthesizedMessages
+        - status
+        - recordingDuration
     FilterExpression:
       type: object
       required:
@@ -3981,18 +3693,29 @@ components:
         type:
           type: string
           enum:
-            - 'NumericComparisonFilter'
-            - 'TextComparisonFilter'
-            - 'ExistsFilter'
-            - 'NotFilter'
-            - 'CustomerFilter'
-            - 'AccountFilter'
-            - 'ProjectFilter'
-            - 'StatusFilter'
-            - 'CallTypeFilter'
-            - 'RecordingStatusFilter'
+            - NumericComparisonFilter
+            - TextComparisonFilter
+            - ExistsFilter
+            - NotFilter
+            - CustomerFilter
+            - AccountFilter
+            - ProjectFilter
+            - StatusFilter
+            - CallTypeFilter
+            - RecordingStatusFilter
       discriminator:
         propertyName: type
+        mapping:
+          NumericComparisonFilter: '#/components/schemas/NumericComparisonFilter'
+          TextComparisonFilter: '#/components/schemas/TextComparisonFilter'
+          ExistsFilter: '#/components/schemas/ExistsFilter'
+          NotFilter: '#/components/schemas/NotFilter'
+          CustomerFilter: '#/components/schemas/CustomerFilter'
+          AccountFilter: '#/components/schemas/AccountFilter'
+          ProjectFilter: '#/components/schemas/ProjectFilter'
+          StatusFilter: '#/components/schemas/StatusFilter'
+          CallTypeFilter: '#/components/schemas/CallTypeFilter'
+          RecordingStatusFilter: '#/components/schemas/RecordingStatusFilter'
 
     NumericComparisonFilter:
       allOf:
@@ -4006,12 +3729,12 @@ components:
             operator:
               type: string
               enum:
-                - 'EQUALS'
-                - 'NOT_EQUALS'
-                - 'LESS_THAN'
-                - 'LESS_THAN_OR_EQUALS'
-                - 'GREATER_THAN'
-                - 'GREATER_THAN_OR_EQUALS'
+                - EQUALS
+                - NOT_EQUALS
+                - LESS_THAN
+                - LESS_THAN_OR_EQUALS
+                - GREATER_THAN
+                - GREATER_THAN_OR_EQUALS
             field:
               $ref: '#/components/schemas/FilterField'
             value:
@@ -4030,11 +3753,11 @@ components:
             operator:
               type: string
               enum:
-                - 'EQUALS'
-                - 'NOT_EQUALS'
-                - 'STARTS_WITH'
-                - 'ENDS_WITH'
-                - 'CONTAINS'
+                - EQUALS
+                - NOT_EQUALS
+                - STARTS_WITH
+                - ENDS_WITH
+                - CONTAINS
             field:
               $ref: '#/components/schemas/FilterField'
             value:
@@ -4140,25 +3863,15 @@ components:
 
     ResellerName:
       type: string
-      format: reseller-name
-
-    ResellerSchema:
-      type: string
-      format: reseller-schema
-      description: the schema the reseller is mapped to
 
     CustomerName:
       type: string
-      format: customer-name
 
     AccountName:
       type: string
-      format: account-name
 
     ProjectName:
       type: string
-      format: project-name
 
     SpeechServiceProfileName:
       type: string
-      format: speech-service-profile-name

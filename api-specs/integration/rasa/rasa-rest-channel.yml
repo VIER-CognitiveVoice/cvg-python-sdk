@@ -1,0 +1,68 @@
+# This is spec is not official and was written in house.
+openapi: 3.0.1
+info:
+  title: "Rasa - Rest channel Endpoints"
+  version: "1.0.0"
+  description: >-
+    This is the api definition of the rasa rest channel
+servers:
+  - url: "http://localhost:5005"
+    description: "Local development server"
+
+paths:
+  /webhooks/rest/webhook:
+    post:
+      summary: Health endpoint of Rasa Server
+      operationId: sendMessage
+      description: >-
+        This URL can be used as an endpoint to run
+        health checks against. When the server is running
+        this will return 200.
+      requestBody:
+        description: The Message to process
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TextMessage'
+      responses:
+        200:
+          description: The answer to the message
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TextAnswer'
+
+components:
+  schemas:
+    TextMessage:
+      description: A message from the user send to rasa
+      type: object
+      required:
+        - sender
+        - message
+      properties:
+        sender:
+          description: An identifier. The author of the message
+          type: string
+        message:
+          description: The message
+          type: string
+    TextAnswer:
+      description: An answer to a TextMessage
+      type: object
+      required:
+        - recipient_id
+      properties:
+        recipient_id:
+          description: The identifier, previously transmitted as sender
+          type: string
+        text:
+          description: The answer
+          type: string
+        custom:
+          description: An Object, containing custom information for the custom response
+          type: object
+          additionalProperties: {}

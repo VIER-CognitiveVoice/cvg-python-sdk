@@ -65,6 +65,10 @@ components:
             - HealthStatusChanged
       discriminator:
         propertyName: type
+        mapping:
+          CallStarted: '#/components/schemas/CallStarted'
+          RecordingAvailable: '#/components/schemas/RecordingAvailable'
+          HealthStatusChanged: '#/components/schemas/HealthStatusChanged'
     CallStarted:
       allOf:
         - $ref: '#/components/schemas/EventPayload'
@@ -78,7 +82,7 @@ components:
             projectContext:
               $ref: 'shared/tokens.yml#/components/schemas/ProjectContext'
             callerNumber: # should've been remoteNumber
-              $ref: 'shared/phone_number.yml#/components/schemas/RemoteNumber'
+              $ref: 'shared/phone_number.yml#/components/schemas/CustomerRemoteParty'
     RecordingAvailable:
       allOf:
         - $ref: '#/components/schemas/EventPayload'

@@ -55,6 +55,12 @@ paths:
           description: Bad request
         '404':
           description: Transcriber or synthesizer vendor / profile not found
+        '409':
+          description: Call ID is already taken
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProvisionCallResponse'
         '500':
           description: Server error
           content:
@@ -82,7 +88,7 @@ components:
         projectToken:
           $ref: 'shared/tokens.yml#/components/schemas/ProjectToken'
         callId:
-          $ref: 'shared/tokens.yml#/components/schemas/CallId'
+          $ref: 'shared/tokens.yml#/components/schemas/ExternalCallId'
         botURL:
           $ref: 'shared/project.yml#/components/schemas/BotUrl'
         botAccessToken:
@@ -90,17 +96,7 @@ components:
         botConfiguration:
           $ref: 'shared/project.yml#/components/schemas/BotConfiguration'
         language:
-          oneOf:
-            - $ref: 'shared/language.yml#/components/schemas/Language'
-            - type: object
-              required:
-                - transcriber
-                - synthesizer
-              properties:
-                transcriber:
-                  $ref: 'shared/language.yml#/components/schemas/Language'
-                synthesizer:
-                  $ref: 'shared/language.yml#/components/schemas/Language'
+          $ref: '#/components/schemas/ProvisionCallRequestLanguage'
         # ideally this would just be named "transcribers"
         transcriberVendors:
           $ref: 'shared/speech_service.yml#/components/schemas/TranscriberSelection'
@@ -116,6 +112,19 @@ components:
         utteranceTimeout:
           $ref: 'shared/project.yml#/components/schemas/UtteranceTimeout'
 
+    ProvisionCallRequestLanguage:
+      oneOf:
+        - $ref: 'shared/language.yml#/components/schemas/Language'
+        - type: object
+          required:
+            - transcriber
+            - synthesizer
+          properties:
+            transcriber:
+              $ref: 'shared/language.yml#/components/schemas/Language'
+            synthesizer:
+              $ref: 'shared/language.yml#/components/schemas/Language'
+
     ProvisionCallResponse:
       type: object
       required:
@@ -126,11 +135,13 @@ components:
           enum:
             - Success
             - Error
-          description: the descriminator
       discriminator:
         propertyName: type
+        mapping:
+          Success: '#/components/schemas/ProvisionSuccessResponse'
+          Error: '#/components/schemas/ProvisionErrorResponse'
 
-    Success:
+    ProvisionSuccessResponse:
       allOf:
         - $ref: '#/components/schemas/ProvisionCallResponse'
         - type: object
@@ -139,11 +150,11 @@ components:
             - dialogId
           properties:
             target:
-              $ref: 'shared/phone_number.yml#/components/schemas/PlatformNumber'
+              $ref: 'shared/phone_number.yml#/components/schemas/E164Number'
             dialogId:
               $ref: 'shared/tokens.yml#/components/schemas/DialogId'
 
-    Error:
+    ProvisionErrorResponse:
       allOf:
         - $ref: '#/components/schemas/ProvisionCallResponse'
         - type: object

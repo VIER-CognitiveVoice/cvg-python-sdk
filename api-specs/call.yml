@@ -246,6 +246,56 @@ paths:
           application/json:
             schema:
               $ref: 'shared/recording.yml#/components/schemas/RecordingStopParameters'
+  # start hidden section
+  /call/inactivity/start:
+    post:
+      tags:
+        - call
+      summary: Start inactivity detection
+      operationId: startInactivity
+      description: |-
+        Start inactivity detection with a specified timeout.
+        
+        The automatic inactivity timeout in the project settings must be disabled for this endpoint to be available.
+      responses:
+        '204':
+          description: Operation successful
+        '400':
+          description: Bad request
+        '404':
+          description: Dialog ID not found
+      requestBody:
+        description: Parameters for the inactivity start operation
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InactivityStartParameters'
+  /call/inactivity/stop:
+    post:
+      tags:
+        - call
+      summary: Stop inactivity detection
+      operationId: stopInactivity
+      description: |-
+        Stop inactivity detection.
+
+        The automatic inactivity timeout in the project settings must be disabled for this endpoint to be available.
+      responses:
+        '204':
+          description: Operation successful
+        '400':
+          description: Bad request
+        '404':
+          description: Dialog ID not found
+      requestBody:
+        description: Parameters for the inactivity stop operation
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InactivityStopParameters'
+  # end hidden section
   /call/bridge:
     post:
       tags:
@@ -393,8 +443,17 @@ components:
             synthesizers:
               $ref: 'shared/speech_service.yml#/components/schemas/SynthesizerSelection'
             bargeIn:
-              type: boolean
-              default: false
+              $ref: '#/components/schemas/BargeIn'
+
+    BargeIn:
+      type: boolean
+      default: false
+      description: |-
+        By default, transcriptions made while the bot is 'talking' (synthesis or audio file playback) are ignored.
+        However, if barge-in is enabled, the audio output is interrupted and the transcription result is sent to the bot.
+        
+        Note that this feature is currently fairly sensitive to background noise, in which case audio output may be
+        interrupted erroneously.
 
     InterpretAs:
       type: string
@@ -445,12 +504,15 @@ components:
             - Number
       discriminator:
         propertyName: name
+        mapping:
+          MultipleChoice: '#/components/schemas/MultipleChoicePrompt'
+          Number: '#/components/schemas/NumberPrompt'
       example:
         name: Number
         submitInputs:
           - DTMF_#
         maxDigits: 4
-    MultipleChoice:
+    MultipleChoicePrompt:
       allOf:
         - $ref: '#/components/schemas/PromptParametersType'
         - type: object
@@ -485,7 +547,7 @@ components:
           A synonym for this choice - either a TTS text, or a DTMF signal.
           DTMF signals are prefixed by `DTMF_`, such as `DTMF_#`.
         format: synonym
-    Number:
+    NumberPrompt:
       allOf:
         - $ref: '#/components/schemas/PromptParametersType'
         - type: object
@@ -496,6 +558,14 @@ components:
                 - DTMF_#
                 - submit
               description: The input that terminates the prompt. Must not be a digit.
+            minDigits:
+              type: integer
+              example: 2
+              minimum: 1
+              description: |-
+                The minimum amount of digits the number can have. Must not be greater than `maxDigits`.
+                If this property is set and smaller than `maxDigits`, a prompt timeout will not lead to a `Timeout` answer,
+                but to a `Number` answer with the digits entered thus far.
             maxDigits:
               type: integer
               example: 5
@@ -546,8 +616,7 @@ components:
                 Reasons could include that the server hosting the file is temporarily unavailable or that the audio file
                 has an unsupported format.
             bargeIn:
-              type: boolean
-              default: false
+              $ref: '#/components/schemas/BargeIn'
     TranscriptionSwitchParameters:
       allOf:
         - $ref: '#/components/schemas/CallParameters'
@@ -594,7 +663,7 @@ components:
             - headNumber
           properties:
             headNumber:
-              $ref: 'shared/phone_number.yml#/components/schemas/HeadNumber'
+              $ref: 'shared/phone_number.yml#/components/schemas/E164Number'
             extensionLength:
               type: integer
               format: int32
@@ -612,7 +681,7 @@ components:
             - destinationNumber
           properties:
             destinationNumber:
-              $ref: 'shared/phone_number.yml#/components/schemas/DialoutNumber'
+              $ref: 'shared/phone_number.yml#/components/schemas/OutboundCallDestination'
     DropParameters:
       allOf:
         - $ref: '#/components/schemas/CallParameters'
@@ -635,8 +704,9 @@ components:
       description: |-
         The number to display to the callee. This is a best-effort feature since we cannot guarantee that all
         gateways the traffic flows through will retain this information.
+        
+        Setting this value to `"anonymous"` will signal a suppressed number to the callee.
       example: "+49721123456000"
-      format: caller-id
     OutboundCallParameters:
       type: object
       properties:
@@ -675,7 +745,7 @@ components:
             projectToken:
               $ref: 'shared/tokens.yml#/components/schemas/ProjectToken'
             destinationNumber:
-              $ref: 'shared/phone_number.yml#/components/schemas/DialoutNumber'
+              $ref: 'shared/phone_number.yml#/components/schemas/OutboundCallDestination'
     OutboundCallResult:
       type: object
       required:
@@ -730,6 +800,21 @@ components:
                 - REJECTED
                 - RESELLER_NOT_FOUND
                 - RING_TIMED_OUT
+                - MISSING_CALLER_ID
                 - UNKNOWN
             message:
               type: string
+    # start hidden section
+    InactivityStartParameters:
+      allOf:
+        - $ref: '#/components/schemas/CallParameters'
+        - type: object
+          required:
+            - timeout
+          properties:
+            timeout:
+              $ref: 'shared/project.yml#/components/schemas/InactivityTimeout'
+    InactivityStopParameters:
+      allOf:
+        - $ref: '#/components/schemas/CallParameters'
+    # end hidden section
