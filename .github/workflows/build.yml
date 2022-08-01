@@ -14,6 +14,6 @@ jobs:
         env:
           TWINE_PASSWORD: "${{ secrets.PYPI_API_TOKEN }}"
         run: |
-          apt-get install twine
+          sudo apt-get install twine
           commit="$(git rev-parse HEAD)"
           twine upload --username __token__ --non-interactive --comment "Built from commit $commit" out/dist/cvg*
