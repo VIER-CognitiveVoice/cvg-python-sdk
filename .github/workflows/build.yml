@@ -7,8 +7,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Build the Docker image
-        env:
-          PYPI_API_TOKEN: "${{ secrets.PYPI_API_TOKEN }}"
+      - name: Build the Distributions
         run: |
           ./build.sh
+      - name: Deploy the Package
+        env:
+          TWINE_PASSWORD: "${{ secrets.PYPI_API_TOKEN }}"
+        run: |
+          commit="$(git rev-parse HEAD)"
+          twine upload --username __token__ --non-interactive --comment "Built from commit $commit" out/dist/cvg*
