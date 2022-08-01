@@ -1,0 +1,14 @@
+name: Python Build
+
+on: [ push, workflow_dispatch ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build the Docker image
+        env:
+          PYPI_API_TOKEN: "${{ secrets.PYPI_API_TOKEN }}"
+        run: |
+          ./build.sh
