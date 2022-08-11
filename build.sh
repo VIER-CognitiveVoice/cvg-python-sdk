@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Merge apis/__init__.py
-clients=("assist" "dialog" "call" "recording")
+clients=("assist" "dialog" "call" "recording" "health")
 version="${1:-"0.1.0"}"
 openapi_generator_image="openapitools/openapi-generator-cli:latest"
 input_base="${INPUT_BASE:-"https://cognitivevoice.io/specs/specs"}"
