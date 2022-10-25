@@ -1,13 +1,6 @@
 from setuptools import setup, find_packages  # noqa: H301
-import os
 
-if "VERSION" in os.environ and len(os.environ["VERSION"]) > 0:
-    version = os.environ["VERSION"]
-else:
-    version = "0.0.1-devel"
-
-with open("requirements.txt") as f:
-    requirements = [req.strip() for req in f.readlines() if len(req) > 0]
+version = "0.0.1-devel"
 
 setup(
     name="cvg-python-sdk",
@@ -18,8 +11,12 @@ setup(
     url="https://cognitivevoice.io",
     keywords=["OpenAPI", "OpenAPI-Generator", "VIER", "VIER Cognitive Voice Gateway SDK"],
     python_requires=">=3.6",
-    install_requires=requirements,
+    install_requires=[
+        'python_dateutil >= 2.5.3',
+        'urllib3 >= 1.25.3',
+    ],
     packages=find_packages(exclude=["test", "tests"]),
+    package_data={'': ['requirements.txt']},
     include_package_data=True,
     license="MIT",
 )

@@ -25,9 +25,9 @@ done
 
 echo "" > "${output_folder}/${package_name}/__init__.py"
 cp requirements.txt "$output_folder"
+sed 's/version = "0.0.1-devel"/version = "'"$version"'"/' < setup.py > "$output_folder/setup.py"
 
 cd "$output_folder"
-export VERSION="$version"
-python ../setup.py sdist
-python ../setup.py bdist_wheel
+python setup.py sdist
+python setup.py bdist_wheel
 
