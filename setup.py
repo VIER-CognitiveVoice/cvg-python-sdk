@@ -1,10 +1,8 @@
 from setuptools import setup, find_packages  # noqa: H301
 
-version = "0.0.1-devel"
-
 setup(
     name="cvg-python-sdk",
-    version=version,
+    version="0.0.1-devel",
     description="VIER Cognitive Voice Gateway SDK",
     author="VIER GmbH",
     author_email="support@vier.ai",
