@@ -24,7 +24,7 @@ do
 done
 
 echo "" > "${output_folder}/${package_name}/__init__.py"
-cp requirements.txt out
+cp requirements.txt "$output_folder"
 
 cd "$output_folder"
 export VERSION="$version"
