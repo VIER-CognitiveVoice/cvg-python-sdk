@@ -9,9 +9,6 @@ else:
 with open("requirements.txt") as f:
     requirements = [req.strip() for req in f.readlines() if len(req) > 0]
 
-print(requirements)
-exit(1)
-
 setup(
     name="cvg-python-sdk",
     version=version,
