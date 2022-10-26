@@ -5,7 +5,6 @@ set -euo pipefail
 # Merge apis/__init__.py
 clients=("assist" "dialog" "call" "recording" "health")
 version="${1:-"0.1.0"}"
-#openapi_generator_image="openapitools/openapi-generator-cli:v6.2.0@sha256:e6153ebc2f1a54985a50c53942e40285f1fbe64f1c701317da290bfff4abe303"
 openapi_generator_image="openapitools/openapi-generator-cli:v6.1.0@sha256:ff52cfd2076751346f79a9b12a060c37680c5dfe086917e0fb1de72be1e4bd0d"
 input_base="${INPUT_BASE:-"https://cognitivevoice.io/specs/specs"}"
 
@@ -26,6 +25,9 @@ done
 echo "" > "${output_folder}/${package_name}/__init__.py"
 cp requirements.txt "$output_folder"
 sed 's/version="0.0.1-devel"/version="'"$version"'"/' < setup.py > "$output_folder/setup.py"
+# work around generator bugs
+sed -i 's/from cvg_sdk.model.entry_type import EntryType/\0\nfrom cvg_sdk.model.external_call_id import ExternalCallId/' "$output_folder/cvg_sdk/api/dialog_api.py"
+sed -i 's/from cvg_sdk.model.recording_objects_response import RecordingObjectsResponse/\0\nfrom cvg_sdk.model.recording_id import RecordingId/' "$output_folder/cvg_sdk/api/recording_api.py"
 
 cd "$output_folder"
 python setup.py sdist
