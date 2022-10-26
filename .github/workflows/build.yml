@@ -21,6 +21,7 @@ jobs:
         env:
           TWINE_PASSWORD: "${{ secrets.PYPI_API_TOKEN }}"
         run: |
+          sudo apt-get update
           sudo apt-get install twine
           tag="$(git describe --tags HEAD)"
           twine upload --username __token__ --non-interactive --comment "Built from tag $tag" out/dist/cvg*
